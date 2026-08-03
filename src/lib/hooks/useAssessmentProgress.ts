@@ -55,6 +55,19 @@ export function useAssessmentProgress() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }, []);
 
+  /**
+   * "I'm not sure" / skip: clears any answer for this question so it is
+   * excluded from scoring and counted as unanswered for confidence.
+   */
+  const skipAnswer = useCallback((questionId: string) => {
+    setAnswers((prev) => {
+      if (!(questionId in prev)) return prev;
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
+  }, []);
+
   const goNext = useCallback((lastIndex: number) => {
     setCurrentIndex((i) => Math.min(i + 1, lastIndex));
   }, []);
@@ -76,6 +89,7 @@ export function useAssessmentProgress() {
     answers,
     hydrated,
     setAnswer,
+    skipAnswer,
     goNext,
     goBack,
     reset,
