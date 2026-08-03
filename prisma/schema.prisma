@@ -31,14 +31,18 @@ model AssessmentResult {
 }
 
 model Lead {
-  id                  String   @id @default(cuid())
-  firstName           String
-  email               String
-  company             String
-  assessmentResultId  String   @unique
-  assessmentResult    AssessmentResult @relation(fields: [assessmentResultId], references: [id])
-  reportGeneratedAt   DateTime?
-  createdAt           DateTime @default(now())
+  id                    String   @id @default(cuid())
+  firstName             String
+  email                 String
+  company               String
+  assessmentResultId    String   @unique
+  assessmentResult      AssessmentResult @relation(fields: [assessmentResultId], references: [id])
+  // Consent record — required before a lead can be saved. See
+  // src/domain/policies/PrivacyPolicy.ts for the current policy version.
+  consentTimestamp      DateTime
+  consentPolicyVersion  String
+  reportGeneratedAt     DateTime?
+  createdAt             DateTime @default(now())
 
   @@index([email])
   @@map("leads")
