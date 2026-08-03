@@ -1,0 +1,241 @@
+{
+  "categories": [
+    {
+      "id": "financial",
+      "name": "Financial Performance",
+      "description": "Profitability, cash flow, and recurring revenue."
+    },
+    {
+      "id": "operations",
+      "name": "Operations & Systems",
+      "description": "Documented processes and systems that run without you."
+    },
+    {
+      "id": "people",
+      "name": "People & Team",
+      "description": "Team capability, accountability, and leadership depth."
+    },
+    {
+      "id": "market",
+      "name": "Market Position",
+      "description": "Differentiation, demand, and customer concentration."
+    },
+    {
+      "id": "ownerDependence",
+      "name": "Owner Dependence",
+      "description": "How much the business relies on you personally to function."
+    }
+  ],
+  "questions": [
+    {
+      "id": "fin_1",
+      "categoryId": "financial",
+      "order": 1,
+      "type": "single-select",
+      "text": "Placeholder: Our business has consistent, predictable profit margins.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "fin_2",
+      "categoryId": "financial",
+      "order": 2,
+      "type": "single-select",
+      "text": "Placeholder: We have recurring or repeat revenue we can count on.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "fin_3",
+      "categoryId": "financial",
+      "order": 3,
+      "type": "single-select",
+      "text": "Placeholder: I have real-time visibility into cash flow without asking anyone.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "ops_1",
+      "categoryId": "operations",
+      "order": 4,
+      "type": "single-select",
+      "text": "Placeholder: Our core processes are documented well enough that a new hire could follow them.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "ops_2",
+      "categoryId": "operations",
+      "order": 5,
+      "type": "single-select",
+      "text": "Placeholder: We use systems/software (not memory or spreadsheets alone) to run day-to-day operations.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "ops_3",
+      "categoryId": "operations",
+      "order": 6,
+      "type": "single-select",
+      "text": "Placeholder: Quality stays consistent even when I'm not directly involved.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "peo_1",
+      "categoryId": "people",
+      "order": 7,
+      "type": "single-select",
+      "text": "Placeholder: I have a leader (not me) who could run daily operations tomorrow.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "peo_2",
+      "categoryId": "people",
+      "order": 8,
+      "type": "single-select",
+      "text": "Placeholder: My team makes meaningful decisions without escalating to me first.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "peo_3",
+      "categoryId": "people",
+      "order": 9,
+      "type": "single-select",
+      "text": "Placeholder: We could lose one key employee (other than me) without major disruption.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "mkt_1",
+      "categoryId": "market",
+      "order": 10,
+      "type": "single-select",
+      "text": "Placeholder: Customers choose us for reasons competitors can't easily copy.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "mkt_2",
+      "categoryId": "market",
+      "order": 11,
+      "type": "single-select",
+      "text": "Placeholder: No single customer represents an outsized share of our revenue.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "mkt_3",
+      "categoryId": "market",
+      "order": 12,
+      "type": "single-select",
+      "text": "Placeholder: Demand for what we sell is growing, not shrinking.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "own_1",
+      "categoryId": "ownerDependence",
+      "order": 13,
+      "type": "single-select",
+      "text": "Placeholder: I could take a two-week vacation with no phone or email access without the business suffering.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "own_2",
+      "categoryId": "ownerDependence",
+      "order": 14,
+      "type": "single-select",
+      "text": "Placeholder: Key customer and vendor relationships don't run through me personally.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    },
+    {
+      "id": "own_3",
+      "categoryId": "ownerDependence",
+      "order": 15,
+      "type": "single-select",
+      "text": "Placeholder: A buyer could acquire this business and I could step away within 90 days.",
+      "options": [
+        { "value": 1, "label": "Strongly disagree" },
+        { "value": 2, "label": "Disagree" },
+        { "value": 3, "label": "Neutral" },
+        { "value": 4, "label": "Agree" },
+        { "value": 5, "label": "Strongly agree" }
+      ]
+    }
+  ]
+}
