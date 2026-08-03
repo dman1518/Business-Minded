@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SavedAssessmentResult } from "@/domain/entities/AssessmentResult";
+import { AssessmentResultView } from "@/application/dto/AssessmentResultView";
 import { OverallScore } from "@/components/results/OverallScore";
 import { CategoryScoreList } from "@/components/results/CategoryScoreList";
 import { InsightCard } from "@/components/results/InsightCard";
@@ -27,7 +27,7 @@ function ResultsContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
-  const [result, setResult] = useState<SavedAssessmentResult | null>(null);
+  const [result, setResult] = useState<AssessmentResultView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<ViewStep>("results");
   const [intent, setIntent] = useState<"download" | "email">("download");
@@ -42,7 +42,7 @@ function ResultsContent() {
         if (!res.ok) throw new Error("Not found");
         return res.json();
       })
-      .then((data: SavedAssessmentResult) => setResult(data))
+      .then((data: AssessmentResultView) => setResult(data))
       .catch(() => setError("We couldn't find that assessment result."));
   }, [id]);
 
