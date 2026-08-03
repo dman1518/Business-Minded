@@ -4,6 +4,7 @@ import { QuestionRepository } from "@/domain/repositories/QuestionRepository";
 import { ScoringConfigRepository } from "@/domain/repositories/ScoringConfigRepository";
 import { ScoringEngine } from "@/domain/repositories/ScoringEngine";
 import { AssessmentResultRepository } from "@/domain/repositories/AssessmentResultRepository";
+import { validateAnswers } from "@/domain/policies/AnswerValidation";
 
 /**
  * Use case: score a completed assessment and persist the result.
@@ -30,9 +31,17 @@ export class SubmitAssessment {
       this.scoringConfigRepository.getConfig(),
     ]);
 
-    const result = this.scoringEngine.score(answers, questionSet, config);
+    // Server-side semantic validation against the canonical question
+    // set — never trust the client. Throws InvalidAnswersError (caught
+    // by the API route and turned into a generic 400) for unknown
+    // question ids, duplicate answers, or values outside that
+    // question's configured options, so the Scoring Engine only ever
+    // sees clean, known, unique answers.
+    const validAnswers = validateAnswers(answers, questionSet);
 
-    const rawAnswers = answers.reduce<Record<string, number>>((acc, a) => {
+    const result = this.scoringEngine.score(validAnswers, questionSet, config);
+
+    const rawAnswers = validAnswers.reduce<Record<string, number>>((acc, a) => {
       acc[a.questionId] = a.value;
       return acc;
     }, {});
