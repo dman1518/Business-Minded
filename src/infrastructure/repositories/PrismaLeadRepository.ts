@@ -3,7 +3,8 @@ import { Lead, SavedLead } from "@/domain/entities/Lead";
 import { prisma } from "@/infrastructure/db/prisma";
 
 /**
- * Adapter: persists captured leads via Prisma/Postgres.
+ * Adapter: persists captured leads via Prisma/Postgres, including the
+ * consent timestamp and privacy-policy version recorded at capture time.
  */
 export class PrismaLeadRepository implements LeadRepository {
   async save(lead: Lead): Promise<SavedLead> {
@@ -13,6 +14,8 @@ export class PrismaLeadRepository implements LeadRepository {
         email: lead.email,
         company: lead.company,
         assessmentResultId: lead.assessmentResultId,
+        consentTimestamp: lead.consentTimestamp,
+        consentPolicyVersion: lead.consentPolicyVersion,
       },
     });
 
@@ -22,6 +25,8 @@ export class PrismaLeadRepository implements LeadRepository {
       email: saved.email,
       company: saved.company,
       assessmentResultId: saved.assessmentResultId,
+      consentTimestamp: saved.consentTimestamp,
+      consentPolicyVersion: saved.consentPolicyVersion,
       createdAt: saved.createdAt,
     };
   }
