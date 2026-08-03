@@ -10,24 +10,30 @@ import { ScoringEngine } from "@/domain/repositories/ScoringEngine";
  *
  * Every business rule below (category weights, insight copy, which
  * category becomes the "constraint" vs. the "opportunity", confidence
- * thresholds) is read from `ScoringConfig` — nothing is hardcoded.
- * This class only implements the *procedure*: normalize -> weight ->
- * rank -> narrate.
+ * thresholds) is read from `ScoringConfig` — nothing is hardcoded here.
+ * Configuration is validated at startup (see validateStartupConfig), so
+ * this class trusts it and does not silently substitute fallback values
+ * (zero weights, equal weights, empty copy) for anything invalid — a
+ * broken config is expected to have already failed loudly before this
+ * code ever runs.
  *
  * Rules encoded (documented as assumptions in the README):
  *  - Each category's score is the mean of its answered questions,
  *    normalized from [scaleMin, scaleMax] to [0, 100].
  *  - The overall score is the weighted average of category scores,
- *    re-normalizing weights if a category has no answers.
+ *    re-normalizing across whichever categories actually have answers
+ *    (this is normal handling of a respondent skipping questions, not
+ *    a config fallback).
  *  - "Biggest Constraint" = lowest-scoring category (the weakest link).
  *  - "Biggest Opportunity" = next-lowest-scoring category (the category
  *    with the most upside after the constraint).
  *  - "Top Priorities" = the `topPriorityCount` lowest-scoring
  *    categories' configured recommendations.
- *  - "Confidence Level" = derived from how tightly clustered category
- *    scores are (standard deviation) against configured thresholds —
- *    a consistent profile across categories is treated as a clearer,
- *    higher-confidence signal than one with wildly uneven categories.
+ *  - "Confidence Level" reflects EVIDENCE QUALITY, not business
+ *    quality: it is the fraction of the assessment's questions that
+ *    were actually answered (vs. skipped), compared against
+ *    `config.confidenceThresholds`. It has nothing to do with how
+ *    similar or different the category scores turn out to be.
  */
 export class ConfigurableScoringEngine implements ScoringEngine {
   score(
@@ -59,7 +65,7 @@ export class ConfigurableScoringEngine implements ScoringEngine {
         categoryName: category.name,
         score: Math.round(normalized),
       });
-      effectiveWeights[category.id] = config.categoryWeights[category.id] ?? 0;
+      effectiveWeights[category.id] = config.categoryWeights[category.id];
     }
 
     if (categoryScores.length === 0) {
@@ -77,10 +83,9 @@ export class ConfigurableScoringEngine implements ScoringEngine {
 
     const topPriorities = ranked
       .slice(0, Math.max(1, config.topPriorityCount))
-      .map((c) => config.categoryInsights[c.categoryId]?.recommendation)
-      .filter((r): r is string => Boolean(r));
+      .map((c) => config.categoryInsights[c.categoryId].recommendation);
 
-    const confidenceLevel = this.deriveConfidence(categoryScores, config);
+    const confidenceLevel = this.deriveConfidence(answers, questionSet, config);
 
     return {
       overallScore,
@@ -116,18 +121,15 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     categoryScores: CategoryScore[],
     weights: Record<string, number>
   ): number {
-    const totalWeight = categoryScores.reduce(
-      (sum, c) => sum + (weights[c.categoryId] ?? 0),
-      0
-    );
-
-    if (totalWeight === 0) {
-      // Defensive fallback: no configured weights — treat all as equal.
-      return categoryScores.reduce((sum, c) => sum + c.score, 0) / categoryScores.length;
-    }
+    // Re-normalize across only the categories that received at least one
+    // answer. Every required category carries the same configured weight
+    // (validated at startup), so this simply redistributes weight away
+    // from categories the respondent skipped entirely — it is not a
+    // fallback for missing/invalid configuration.
+    const totalWeight = categoryScores.reduce((sum, c) => sum + weights[c.categoryId], 0);
 
     return categoryScores.reduce(
-      (sum, c) => sum + c.score * ((weights[c.categoryId] ?? 0) / totalWeight),
+      (sum, c) => sum + c.score * (weights[c.categoryId] / totalWeight),
       0
     );
   }
@@ -138,35 +140,62 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     kind: "opportunity" | "constraint"
   ): Insight {
     const copy = config.categoryInsights[categoryScore.categoryId];
+    if (!copy) {
+      // Should be unreachable — validateStartupConfig guarantees every
+      // required category has insight copy before the app can boot.
+      throw new Error(
+        `No categoryInsights configured for category "${categoryScore.categoryId}".`
+      );
+    }
+
     return {
       categoryId: categoryScore.categoryId,
       categoryName: categoryScore.categoryName,
-      headline:
-        kind === "opportunity"
-          ? copy?.opportunityHeadline ?? categoryScore.categoryName
-          : copy?.constraintHeadline ?? categoryScore.categoryName,
+      headline: kind === "opportunity" ? copy.opportunityHeadline : copy.constraintHeadline,
       description:
-        kind === "opportunity"
-          ? copy?.opportunityDescription ?? ""
-          : copy?.constraintDescription ?? "",
+        kind === "opportunity" ? copy.opportunityDescription : copy.constraintDescription,
     };
   }
 
+  /**
+   * Confidence = evidence completeness, i.e. what fraction of the
+   * assessment's questions were actually answered (a respondent may
+   * skip a question with "I'm not sure"). It is deliberately unrelated
+   * to the resulting category scores, so a low score never reads as
+   * "low confidence" and a tightly clustered set of scores never reads
+   * as "high confidence" — only how much evidence was collected does.
+   *
+   * Callers (SubmitAssessment -> validateAnswers) are expected to have
+   * already rejected any answer with an unknown question id or a
+   * duplicate questionId before this ever runs. This method still
+   * filters defensively to answers whose questionId is a real,
+   * known question — and dedupes via Set — so completeness can never
+   * be inflated by extra/bogus/duplicate answers even if it is ever
+   * called directly with unvalidated input.
+   */
   private deriveConfidence(
-    categoryScores: CategoryScore[],
+    answers: Answer[],
+    questionSet: QuestionSet,
     config: ScoringConfig
   ): ConfidenceLevel {
-    const mean =
-      categoryScores.reduce((sum, c) => sum + c.score, 0) / categoryScores.length;
-    const variance =
-      categoryScores.reduce((sum, c) => sum + (c.score - mean) ** 2, 0) /
-      categoryScores.length;
-    const stdDev = Math.sqrt(variance);
+    const knownQuestionIds = new Set(questionSet.questions.map((q) => q.id));
+    const totalQuestions = questionSet.questions.length;
+    const answeredQuestions = new Set(
+      answers.filter((a) => knownQuestionIds.has(a.questionId)).map((a) => a.questionId)
+    ).size;
+    const completeness = totalQuestions === 0 ? 0 : answeredQuestions / totalQuestions;
 
     const sortedThresholds = [...config.confidenceThresholds].sort(
-      (a, b) => a.maxStdDev - b.maxStdDev
+      (a, b) => b.minCompleteness - a.minCompleteness
     );
-    const match = sortedThresholds.find((t) => stdDev <= t.maxStdDev);
-    return match?.level ?? "Medium";
+    const match = sortedThresholds.find((t) => completeness >= t.minCompleteness);
+
+    if (!match) {
+      // Unreachable if config was validated (a minCompleteness: 0 entry
+      // is required), but fail loudly rather than guess if it happens.
+      throw new Error("No confidence threshold matched — invalid confidenceThresholds config.");
+    }
+
+    return match.level;
   }
 }

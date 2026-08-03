@@ -15,7 +15,7 @@ export default function AssessmentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { currentIndex, answers, hydrated, setAnswer, goNext, goBack, reset } =
+  const { currentIndex, answers, hydrated, setAnswer, skipAnswer, goNext, goBack, reset } =
     useAssessmentProgress();
 
   useEffect(() => {
@@ -44,9 +44,7 @@ export default function AssessmentPage() {
   const selectedValue = answers[question.id];
   const canAdvance = selectedValue !== undefined;
 
-  async function handleAdvance() {
-    if (!canAdvance) return;
-
+  async function advance(excludeQuestionId?: string) {
     if (!isLastQuestion) {
       goNext(total - 1);
       return;
@@ -56,11 +54,15 @@ export default function AssessmentPage() {
     setSubmitError(null);
 
     try {
+      const answerEntries = Object.entries(answers).filter(
+        ([questionId]) => questionId !== excludeQuestionId
+      );
+
       const response = await fetch("/api/assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          answers: Object.entries(answers).map(([questionId, value]) => ({
+          answers: answerEntries.map(([questionId, value]) => ({
             questionId,
             value,
           })),
@@ -78,6 +80,17 @@ export default function AssessmentPage() {
     }
   }
 
+  function handleAdvance() {
+    if (!canAdvance) return;
+    advance();
+  }
+
+  function handleSkip() {
+    setSubmitError(null);
+    skipAnswer(question.id);
+    advance(question.id);
+  }
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-16">
       <ProgressIndicator currentStep={safeIndex + 1} totalSteps={total} />
@@ -86,6 +99,8 @@ export default function AssessmentPage() {
         question={question}
         selectedValue={selectedValue}
         onSelect={(value) => setAnswer(question.id, value)}
+        onSkip={handleSkip}
+        disabled={submitting}
       />
 
       {submitError ? (

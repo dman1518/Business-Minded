@@ -6,9 +6,17 @@ interface QuestionCardProps {
   question: Question;
   selectedValue?: number;
   onSelect: (value: number) => void;
+  onSkip: () => void;
+  disabled?: boolean;
 }
 
-export function QuestionCard({ question, selectedValue, onSelect }: QuestionCardProps) {
+export function QuestionCard({
+  question,
+  selectedValue,
+  onSelect,
+  onSkip,
+  disabled = false,
+}: QuestionCardProps) {
   return (
     <Card className="w-full">
       <CardHeader>
@@ -31,9 +39,10 @@ export function QuestionCard({ question, selectedValue, onSelect }: QuestionCard
                 type="button"
                 role="radio"
                 aria-checked={selected}
+                disabled={disabled}
                 onClick={() => onSelect(option.value)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors",
+                  "flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                   selected
                     ? "border-primary bg-primary/5 font-medium text-foreground"
                     : "border-border bg-background hover:border-primary/50 hover:bg-accent"
@@ -50,6 +59,18 @@ export function QuestionCard({ question, selectedValue, onSelect }: QuestionCard
             );
           })}
         </div>
+
+        <button
+          type="button"
+          onClick={onSkip}
+          disabled={disabled}
+          className={cn(
+            "mt-4 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:cursor-not-allowed disabled:opacity-60",
+            selectedValue === undefined && "font-medium text-foreground"
+          )}
+        >
+          I&apos;m not sure / skip this question
+        </button>
       </CardContent>
     </Card>
   );

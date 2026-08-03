@@ -4,9 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run validate:config",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate:config": "tsx scripts/validate-config.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
@@ -32,9 +37,14 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.35",
     "postcss": "^8.4.38",
     "prisma": "^5.20.0",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5.5.2"
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.2",
+    "vite-tsconfig-paths": "^5.0.1",
+    "vitest": "^2.1.4"
   }
 }

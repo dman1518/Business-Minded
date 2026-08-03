@@ -8,20 +8,29 @@ export interface CategoryInsightConfig {
   recommendation: string;
 }
 
-/** Confidence is derived from how tightly clustered category scores are. */
+/**
+ * Confidence represents evidence quality, not business quality: it is
+ * derived from how complete the respondent's answers were, never from
+ * how similar or different the resulting category scores are.
+ */
 export interface ConfidenceThreshold {
-  /** If the standard deviation of category scores is <= this, use `level`. */
-  maxStdDev: number;
+  /**
+   * The minimum fraction of questions answered (0-1) required to reach
+   * `level`. Thresholds are evaluated from highest to lowest; the
+   * first one the actual completeness meets or exceeds wins. Must
+   * include an entry with `minCompleteness: 0` as a catch-all.
+   */
+  minCompleteness: number;
   level: "Low" | "Medium" | "High";
 }
 
 export interface ScoringConfig {
-  /** Must sum to 1. Keyed by categoryId. */
+  /** Must have an entry for every required category, each exactly 0.2, summing to 1. */
   categoryWeights: Record<string, number>;
   scaleMin: number;
   scaleMax: number;
   categoryInsights: Record<string, CategoryInsightConfig>;
-  /** Evaluated in array order; first match wins. Should end with a catch-all (Infinity). */
+  /** See ConfidenceThreshold — evaluated highest-completeness-first. */
   confidenceThresholds: ConfidenceThreshold[];
   /** How many categories feed into "Top Three Priorities". */
   topPriorityCount: number;
