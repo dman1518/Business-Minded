@@ -4,6 +4,11 @@ import { PrismaAssessmentResultRepository } from "@/infrastructure/repositories/
 import { PrismaLeadRepository } from "@/infrastructure/repositories/PrismaLeadRepository";
 import { ConfigurableScoringEngine } from "@/infrastructure/scoring-engine/ConfigurableScoringEngine";
 import { PdfReportEngine } from "@/infrastructure/report-engine/PdfReportEngine";
+import { validateStartupConfig } from "@/infrastructure/config/validateStartupConfig";
+import { QuestionSet } from "@/domain/entities/Question";
+import { ScoringConfig } from "@/domain/repositories/ScoringConfigRepository";
+import questionsData from "@/infrastructure/config/questions.json";
+import scoringRulesData from "@/infrastructure/config/scoring-rules.json";
 
 import { GetQuestionSet } from "@/application/use-cases/GetQuestionSet";
 import { SubmitAssessment } from "@/application/use-cases/SubmitAssessment";
@@ -18,7 +23,14 @@ import { GenerateReport } from "@/application/use-cases/GenerateReport";
  * cases returned here, never on JsonQuestionRepository, Prisma, etc.
  * directly. Swapping an adapter (e.g. JSON questions -> CMS questions)
  * means changing one line in this file.
+ *
+ * Eager, fail-loud safety net: `npm run build` already runs
+ * `validate:config` (see prebuild script), but this call also
+ * validates at server startup / first import so a bad config can never
+ * silently serve wrong scores in any environment.
  */
+validateStartupConfig(questionsData as unknown as QuestionSet, scoringRulesData as unknown as ScoringConfig);
+
 const questionRepository = new JsonQuestionRepository();
 const scoringConfigRepository = new JsonScoringConfigRepository();
 const assessmentResultRepository = new PrismaAssessmentResultRepository();
