@@ -164,14 +164,25 @@ export class ConfigurableScoringEngine implements ScoringEngine {
    * to the resulting category scores, so a low score never reads as
    * "low confidence" and a tightly clustered set of scores never reads
    * as "high confidence" — only how much evidence was collected does.
+   *
+   * Callers (SubmitAssessment -> validateAnswers) are expected to have
+   * already rejected any answer with an unknown question id or a
+   * duplicate questionId before this ever runs. This method still
+   * filters defensively to answers whose questionId is a real,
+   * known question — and dedupes via Set — so completeness can never
+   * be inflated by extra/bogus/duplicate answers even if it is ever
+   * called directly with unvalidated input.
    */
   private deriveConfidence(
     answers: Answer[],
     questionSet: QuestionSet,
     config: ScoringConfig
   ): ConfidenceLevel {
+    const knownQuestionIds = new Set(questionSet.questions.map((q) => q.id));
     const totalQuestions = questionSet.questions.length;
-    const answeredQuestions = new Set(answers.map((a) => a.questionId)).size;
+    const answeredQuestions = new Set(
+      answers.filter((a) => knownQuestionIds.has(a.questionId)).map((a) => a.questionId)
+    ).size;
     const completeness = totalQuestions === 0 ? 0 : answeredQuestions / totalQuestions;
 
     const sortedThresholds = [...config.confidenceThresholds].sort(
