@@ -1,240 +1,171 @@
 {
   "categories": [
     {
-      "id": "financial",
-      "name": "Financial Performance",
-      "description": "Profitability, cash flow, and recurring revenue."
+      "id": "money",
+      "name": "Money",
+      "description": "Is your business creating the financial results you need?"
     },
     {
       "id": "operations",
-      "name": "Operations & Systems",
-      "description": "Documented processes and systems that run without you."
+      "name": "Operations",
+      "description": "Is your business executing consistently?"
     },
     {
-      "id": "people",
-      "name": "People & Team",
-      "description": "Team capability, accountability, and leadership depth."
+      "id": "growth",
+      "name": "Growth",
+      "description": "Is your business positioned to grow?"
     },
     {
-      "id": "market",
-      "name": "Market Position",
-      "description": "Differentiation, demand, and customer concentration."
+      "id": "freedom",
+      "name": "Freedom",
+      "description": "Does your business give you the freedom you want?"
     },
     {
-      "id": "ownerDependence",
-      "name": "Owner Dependence",
-      "description": "How much the business relies on you personally to function."
+      "id": "resilience",
+      "name": "Resilience",
+      "description": "Will your business keep performing when life doesn't go according to plan?"
     }
   ],
   "questions": [
     {
-      "id": "fin_1",
-      "categoryId": "financial",
+      "id": "money_1",
+      "categoryId": "money",
       "order": 1,
       "type": "single-select",
-      "text": "Placeholder: Our business has consistent, predictable profit margins.",
+      "text": "Is your profit margin strong enough to reinvest in the business and pay yourself well?",
+      "helpText": "Think about the last few months, not just a single good or bad one.",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, not really" },
+        { "value": 2, "label": "Somewhat, but it's tight" },
+        { "value": 3, "label": "It's okay" },
+        { "value": 4, "label": "Yes, mostly" },
+        { "value": 5, "label": "Yes, consistently" }
       ]
     },
     {
-      "id": "fin_2",
-      "categoryId": "financial",
+      "id": "money_2",
+      "categoryId": "money",
       "order": 2,
       "type": "single-select",
-      "text": "Placeholder: We have recurring or repeat revenue we can count on.",
+      "text": "Do you have revenue you can count on next month, not just this month?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, every month starts from zero" },
+        { "value": 2, "label": "A little, but it's unpredictable" },
+        { "value": 3, "label": "Somewhat predictable" },
+        { "value": 4, "label": "Mostly predictable" },
+        { "value": 5, "label": "Yes, highly predictable" }
       ]
     },
     {
-      "id": "fin_3",
-      "categoryId": "financial",
+      "id": "operations_1",
+      "categoryId": "operations",
       "order": 3,
       "type": "single-select",
-      "text": "Placeholder: I have real-time visibility into cash flow without asking anyone.",
+      "text": "Are your key processes documented well enough that someone new could follow them?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, it's all in my head" },
+        { "value": 2, "label": "A little, informally" },
+        { "value": 3, "label": "Some processes are documented" },
+        { "value": 4, "label": "Most are documented" },
+        { "value": 5, "label": "Yes, thoroughly documented" }
       ]
     },
     {
-      "id": "ops_1",
+      "id": "operations_2",
       "categoryId": "operations",
       "order": 4,
       "type": "single-select",
-      "text": "Placeholder: Our core processes are documented well enough that a new hire could follow them.",
+      "text": "Does the quality of your product or service stay consistent no matter who's doing the work?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, it varies a lot" },
+        { "value": 2, "label": "It varies somewhat" },
+        { "value": 3, "label": "Mostly consistent" },
+        { "value": 4, "label": "Consistent" },
+        { "value": 5, "label": "Very consistent" }
       ]
     },
     {
-      "id": "ops_2",
-      "categoryId": "operations",
+      "id": "growth_1",
+      "categoryId": "growth",
       "order": 5,
       "type": "single-select",
-      "text": "Placeholder: We use systems/software (not memory or spreadsheets alone) to run day-to-day operations.",
+      "text": "Do you have a clear, repeatable way to bring in new customers?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, it's random or word-of-mouth only" },
+        { "value": 2, "label": "Somewhat, but inconsistent" },
+        { "value": 3, "label": "We have something that works sometimes" },
+        { "value": 4, "label": "Yes, a process that mostly works" },
+        { "value": 5, "label": "Yes, a reliable, repeatable process" }
       ]
     },
     {
-      "id": "ops_3",
-      "categoryId": "operations",
+      "id": "growth_2",
+      "categoryId": "growth",
       "order": 6,
       "type": "single-select",
-      "text": "Placeholder: Quality stays consistent even when I'm not directly involved.",
+      "text": "Is demand for what you sell growing, not flat or shrinking?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, demand is shrinking" },
+        { "value": 2, "label": "Flat" },
+        { "value": 3, "label": "Growing slowly" },
+        { "value": 4, "label": "Growing steadily" },
+        { "value": 5, "label": "Growing quickly" }
       ]
     },
     {
-      "id": "peo_1",
-      "categoryId": "people",
+      "id": "freedom_1",
+      "categoryId": "freedom",
       "order": 7,
       "type": "single-select",
-      "text": "Placeholder: I have a leader (not me) who could run daily operations tomorrow.",
+      "text": "Could you step away for two weeks without the business suffering?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, it would fall apart" },
+        { "value": 2, "label": "It would struggle" },
+        { "value": 3, "label": "It would be okay, with some issues" },
+        { "value": 4, "label": "Yes, mostly fine" },
+        { "value": 5, "label": "Yes, it would run smoothly" }
       ]
     },
     {
-      "id": "peo_2",
-      "categoryId": "people",
+      "id": "freedom_2",
+      "categoryId": "freedom",
       "order": 8,
       "type": "single-select",
-      "text": "Placeholder: My team makes meaningful decisions without escalating to me first.",
+      "text": "Do your key customer and vendor relationships avoid depending on you personally?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, they all go through me" },
+        { "value": 2, "label": "Mostly through me" },
+        { "value": 3, "label": "A mix" },
+        { "value": 4, "label": "Mostly independent of me" },
+        { "value": 5, "label": "Yes, fully independent of me" }
       ]
     },
     {
-      "id": "peo_3",
-      "categoryId": "people",
+      "id": "resilience_1",
+      "categoryId": "resilience",
       "order": 9,
       "type": "single-select",
-      "text": "Placeholder: We could lose one key employee (other than me) without major disruption.",
+      "text": "Could you absorb a serious setback (losing a client, an economic downturn, a key employee leaving) without being in real trouble?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No, it would be a crisis" },
+        { "value": 2, "label": "It would hurt badly" },
+        { "value": 3, "label": "We'd manage, with difficulty" },
+        { "value": 4, "label": "We'd be okay" },
+        { "value": 5, "label": "Yes, we're well prepared" }
       ]
     },
     {
-      "id": "mkt_1",
-      "categoryId": "market",
+      "id": "resilience_2",
+      "categoryId": "resilience",
       "order": 10,
       "type": "single-select",
-      "text": "Placeholder: Customers choose us for reasons competitors can't easily copy.",
+      "text": "Do you have a cash reserve or safety net that would cover at least a few months of expenses?",
       "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
-      ]
-    },
-    {
-      "id": "mkt_2",
-      "categoryId": "market",
-      "order": 11,
-      "type": "single-select",
-      "text": "Placeholder: No single customer represents an outsized share of our revenue.",
-      "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
-      ]
-    },
-    {
-      "id": "mkt_3",
-      "categoryId": "market",
-      "order": 12,
-      "type": "single-select",
-      "text": "Placeholder: Demand for what we sell is growing, not shrinking.",
-      "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
-      ]
-    },
-    {
-      "id": "own_1",
-      "categoryId": "ownerDependence",
-      "order": 13,
-      "type": "single-select",
-      "text": "Placeholder: I could take a two-week vacation with no phone or email access without the business suffering.",
-      "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
-      ]
-    },
-    {
-      "id": "own_2",
-      "categoryId": "ownerDependence",
-      "order": 14,
-      "type": "single-select",
-      "text": "Placeholder: Key customer and vendor relationships don't run through me personally.",
-      "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
-      ]
-    },
-    {
-      "id": "own_3",
-      "categoryId": "ownerDependence",
-      "order": 15,
-      "type": "single-select",
-      "text": "Placeholder: A buyer could acquire this business and I could step away within 90 days.",
-      "options": [
-        { "value": 1, "label": "Strongly disagree" },
-        { "value": 2, "label": "Disagree" },
-        { "value": 3, "label": "Neutral" },
-        { "value": 4, "label": "Agree" },
-        { "value": 5, "label": "Strongly agree" }
+        { "value": 1, "label": "No reserve at all" },
+        { "value": 2, "label": "Less than a month" },
+        { "value": 3, "label": "About a month or two" },
+        { "value": 4, "label": "A few months" },
+        { "value": 5, "label": "Several months or more" }
       ]
     }
   ]
