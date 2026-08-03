@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run validate:config",
+    "prebuild": "prisma generate && npm run validate:config",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
