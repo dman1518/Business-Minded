@@ -3,52 +3,52 @@
   "scaleMax": 5,
   "topPriorityCount": 3,
   "categoryWeights": {
-    "financial": 0.2,
+    "money": 0.2,
     "operations": 0.2,
-    "people": 0.2,
-    "market": 0.2,
-    "ownerDependence": 0.2
+    "growth": 0.2,
+    "freedom": 0.2,
+    "resilience": 0.2
   },
   "categoryInsights": {
-    "financial": {
-      "opportunityHeadline": "Strengthen financial predictability",
-      "opportunityDescription": "Tightening up margin visibility and recurring revenue is one of the fastest ways to increase business value.",
-      "constraintHeadline": "Inconsistent financial performance",
-      "constraintDescription": "Unpredictable profit and cash flow make the business harder to value, finance, or sell.",
-      "recommendation": "Build a monthly cash flow forecast and identify at least one recurring revenue offer."
+    "money": {
+      "opportunityHeadline": "Strengthen your financial foundation",
+      "opportunityDescription": "Improving margin and revenue predictability is one of the fastest ways to increase what your business is worth.",
+      "constraintHeadline": "Inconsistent financial results",
+      "constraintDescription": "Unpredictable profit and cash flow make it harder to plan, finance, or eventually sell the business.",
+      "recommendation": "Review your pricing and margins this month, and identify one way to make next month's revenue more predictable."
     },
     "operations": {
-      "opportunityHeadline": "Systemize core operations",
-      "opportunityDescription": "Documenting how the business runs turns tribal knowledge into a transferable asset.",
-      "constraintHeadline": "Undocumented, owner-run operations",
-      "constraintDescription": "Without documented systems, quality and output depend on who happens to be in the room.",
-      "recommendation": "Document your top 3 recurring processes as step-by-step SOPs this quarter."
+      "opportunityHeadline": "Make execution more consistent",
+      "opportunityDescription": "Documented, repeatable processes turn what's in your head into something the business can rely on.",
+      "constraintHeadline": "Inconsistent execution",
+      "constraintDescription": "Without documented processes, quality and output depend on who happens to be doing the work.",
+      "recommendation": "Document your top two recurring processes as simple step-by-step guides this quarter."
     },
-    "people": {
-      "opportunityHeadline": "Build a leadership layer",
-      "opportunityDescription": "Developing a manager who can make real decisions frees the owner from day-to-day firefighting.",
-      "constraintHeadline": "Thin leadership bench",
-      "constraintDescription": "Decisions bottleneck through the owner because no one else is empowered to make them.",
-      "recommendation": "Identify one team member to promote into a decision-making leadership role and delegate one full area to them."
+    "growth": {
+      "opportunityHeadline": "Build a repeatable path to new customers",
+      "opportunityDescription": "A predictable way to generate demand makes future growth less dependent on luck or one-off effort.",
+      "constraintHeadline": "Unclear path to growth",
+      "constraintDescription": "Without a repeatable way to attract customers, growth is unpredictable and hard to plan around.",
+      "recommendation": "Identify the one marketing or sales activity that has worked best, and turn it into a repeatable process."
     },
-    "market": {
-      "opportunityHeadline": "Sharpen market differentiation",
-      "opportunityDescription": "A clearer, defensible position lets the business compete on value instead of price.",
-      "constraintHeadline": "Weak differentiation or customer concentration",
-      "constraintDescription": "Revenue that depends on a few customers or an easily-copied offer is fragile and discounted by buyers.",
-      "recommendation": "Document what makes your offer hard to copy and reduce reliance on your largest customer."
+    "freedom": {
+      "opportunityHeadline": "Create more freedom for yourself",
+      "opportunityDescription": "Every decision or relationship that moves off your desk gives you more freedom and makes the business more valuable.",
+      "constraintHeadline": "The business depends heavily on you",
+      "constraintDescription": "If the business can't run well without you, it limits your freedom and is worth less to a future buyer.",
+      "recommendation": "Hand off one customer or vendor relationship you currently manage personally to a team member this month."
     },
-    "ownerDependence": {
-      "opportunityHeadline": "Reduce owner dependence",
-      "opportunityDescription": "Every relationship and decision that moves off the owner's desk directly increases transferable value.",
-      "constraintHeadline": "High owner dependence",
-      "constraintDescription": "The business is worth less — and harder to sell or scale — if it cannot run without the owner present.",
-      "recommendation": "Move one key customer or vendor relationship from yourself to a team member this month."
+    "resilience": {
+      "opportunityHeadline": "Build a stronger safety net",
+      "opportunityDescription": "A business that can absorb setbacks is a business that can keep performing when life doesn't go according to plan.",
+      "constraintHeadline": "Limited ability to absorb setbacks",
+      "constraintDescription": "Without a financial or operational cushion, a single setback can put the business in real jeopardy.",
+      "recommendation": "Set a target cash reserve and start setting aside a fixed amount each month until you reach it."
     }
   },
   "confidenceThresholds": [
-    { "maxStdDev": 10, "level": "High" },
-    { "maxStdDev": 20, "level": "Medium" },
-    { "maxStdDev": 999, "level": "Low" }
+    { "minCompleteness": 0.9, "level": "High" },
+    { "minCompleteness": 0.6, "level": "Medium" },
+    { "minCompleteness": 0, "level": "Low" }
   ]
 }
