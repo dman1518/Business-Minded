@@ -1,0 +1,54 @@
+{
+  "scaleMin": 1,
+  "scaleMax": 5,
+  "topPriorityCount": 3,
+  "categoryWeights": {
+    "financial": 0.2,
+    "operations": 0.2,
+    "people": 0.2,
+    "market": 0.2,
+    "ownerDependence": 0.2
+  },
+  "categoryInsights": {
+    "financial": {
+      "opportunityHeadline": "Strengthen financial predictability",
+      "opportunityDescription": "Tightening up margin visibility and recurring revenue is one of the fastest ways to increase business value.",
+      "constraintHeadline": "Inconsistent financial performance",
+      "constraintDescription": "Unpredictable profit and cash flow make the business harder to value, finance, or sell.",
+      "recommendation": "Build a monthly cash flow forecast and identify at least one recurring revenue offer."
+    },
+    "operations": {
+      "opportunityHeadline": "Systemize core operations",
+      "opportunityDescription": "Documenting how the business runs turns tribal knowledge into a transferable asset.",
+      "constraintHeadline": "Undocumented, owner-run operations",
+      "constraintDescription": "Without documented systems, quality and output depend on who happens to be in the room.",
+      "recommendation": "Document your top 3 recurring processes as step-by-step SOPs this quarter."
+    },
+    "people": {
+      "opportunityHeadline": "Build a leadership layer",
+      "opportunityDescription": "Developing a manager who can make real decisions frees the owner from day-to-day firefighting.",
+      "constraintHeadline": "Thin leadership bench",
+      "constraintDescription": "Decisions bottleneck through the owner because no one else is empowered to make them.",
+      "recommendation": "Identify one team member to promote into a decision-making leadership role and delegate one full area to them."
+    },
+    "market": {
+      "opportunityHeadline": "Sharpen market differentiation",
+      "opportunityDescription": "A clearer, defensible position lets the business compete on value instead of price.",
+      "constraintHeadline": "Weak differentiation or customer concentration",
+      "constraintDescription": "Revenue that depends on a few customers or an easily-copied offer is fragile and discounted by buyers.",
+      "recommendation": "Document what makes your offer hard to copy and reduce reliance on your largest customer."
+    },
+    "ownerDependence": {
+      "opportunityHeadline": "Reduce owner dependence",
+      "opportunityDescription": "Every relationship and decision that moves off the owner's desk directly increases transferable value.",
+      "constraintHeadline": "High owner dependence",
+      "constraintDescription": "The business is worth less — and harder to sell or scale — if it cannot run without the owner present.",
+      "recommendation": "Move one key customer or vendor relationship from yourself to a team member this month."
+    }
+  },
+  "confidenceThresholds": [
+    { "maxStdDev": 10, "level": "High" },
+    { "maxStdDev": 20, "level": "Medium" },
+    { "maxStdDev": 999, "level": "Low" }
+  ]
+}
