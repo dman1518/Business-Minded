@@ -1,0 +1,45 @@
+// Business Minded — Sprint 1 data model
+// Two tables are needed for the customer flow:
+//   AssessmentResult — the scored outcome of a completed Business Health Check
+//   Lead             — the contact captured in exchange for the report
+//
+// Kept intentionally small for Sprint 1 (validation, not scale).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AssessmentResult {
+  id                  String   @id @default(cuid())
+  overallScore        Int
+  categoryScores      Json // CategoryScore[]
+  biggestOpportunity  Json // Insight
+  biggestConstraint   Json // Insight
+  topPriorities       Json // string[]
+  confidenceLevel     String
+  rawAnswers          Json // { [questionId]: answerValue } — for auditing/debugging scoring
+  createdAt           DateTime @default(now())
+
+  lead Lead?
+
+  @@map("assessment_results")
+}
+
+model Lead {
+  id                  String   @id @default(cuid())
+  firstName           String
+  email               String
+  company             String
+  assessmentResultId  String   @unique
+  assessmentResult    AssessmentResult @relation(fields: [assessmentResultId], references: [id])
+  reportGeneratedAt   DateTime?
+  createdAt           DateTime @default(now())
+
+  @@index([email])
+  @@map("leads")
+}
