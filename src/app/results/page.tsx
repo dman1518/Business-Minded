@@ -74,7 +74,7 @@ function ResultsContent() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-16">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10 sm:gap-8 sm:px-6 sm:py-16">
       {step === "results" && (
         <>
           <div className="flex flex-col items-center gap-4">
@@ -91,7 +91,7 @@ function ResultsContent() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
             <InsightCard label="Biggest Opportunity" insight={result.biggestOpportunity} tone="positive" />
             <InsightCard label="Biggest Constraint" insight={result.biggestConstraint} tone="negative" />
           </div>

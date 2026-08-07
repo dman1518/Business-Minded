@@ -92,7 +92,7 @@ export default function AssessmentPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-16">
+    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-10 sm:px-6 sm:py-16">
       <ProgressIndicator currentStep={safeIndex + 1} totalSteps={total} />
 
       <QuestionCard
@@ -107,7 +107,7 @@ export default function AssessmentPage() {
         <p className="mt-4 text-sm text-red-600">{submitError}</p>
       ) : null}
 
-      <div className="mt-8 flex items-center justify-between">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
         <Button
           type="button"
           variant="outline"

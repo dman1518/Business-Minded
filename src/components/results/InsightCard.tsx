@@ -10,8 +10,8 @@ interface InsightCardProps {
 
 export function InsightCard({ label, insight, tone }: InsightCardProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="min-w-0">
+      <CardHeader className="min-w-0 pb-2">
         <span
           className={cn(
             "text-xs font-semibold uppercase tracking-wide",
@@ -20,10 +20,10 @@ export function InsightCard({ label, insight, tone }: InsightCardProps) {
         >
           {label}
         </span>
-        <CardTitle className="text-lg">{insight.headline}</CardTitle>
+        <CardTitle className="break-words text-base sm:text-lg">{insight.headline}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{insight.description}</p>
+      <CardContent className="min-w-0">
+        <p className="min-w-0 break-words text-sm text-muted-foreground">{insight.description}</p>
       </CardContent>
     </Card>
   );

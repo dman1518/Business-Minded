@@ -10,7 +10,7 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
 
   return (
     <div className="mb-8 w-full">
-      <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
+      <div className="mb-2 flex min-w-0 items-center justify-between gap-2 text-sm text-muted-foreground">
         <span>
           Question {currentStep} of {totalSteps}
         </span>

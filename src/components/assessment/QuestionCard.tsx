@@ -20,14 +20,14 @@ export function QuestionCard({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-2xl">{question.text}</CardTitle>
+        <CardTitle className="break-words text-xl sm:text-2xl">{question.text}</CardTitle>
         {question.helpText ? (
-          <p className="text-sm text-muted-foreground">{question.helpText}</p>
+          <p className="min-w-0 break-words text-sm text-muted-foreground">{question.helpText}</p>
         ) : null}
       </CardHeader>
       <CardContent>
         <div
-          className="flex flex-col gap-3"
+          className="flex min-w-0 flex-col gap-3"
           role="radiogroup"
           aria-label={question.text}
         >
@@ -42,16 +42,16 @@ export function QuestionCard({
                 disabled={disabled}
                 onClick={() => onSelect(option.value)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                  "flex w-full min-w-0 items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                   selected
                     ? "border-primary bg-primary/5 font-medium text-foreground"
                     : "border-border bg-background hover:border-primary/50 hover:bg-accent"
                 )}
               >
-                {option.label}
+                <span className="min-w-0 break-words">{option.label}</span>
                 <span
                   className={cn(
-                    "ml-4 h-4 w-4 shrink-0 rounded-full border",
+                    "h-4 w-4 shrink-0 rounded-full border",
                     selected ? "border-primary bg-primary" : "border-border"
                   )}
                 />
@@ -65,7 +65,7 @@ export function QuestionCard({
           onClick={onSkip}
           disabled={disabled}
           className={cn(
-            "mt-4 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:cursor-not-allowed disabled:opacity-60",
+            "mt-4 break-words text-left text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:cursor-not-allowed disabled:opacity-60",
             selectedValue === undefined && "font-medium text-foreground"
           )}
         >

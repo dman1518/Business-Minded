@@ -15,7 +15,7 @@ const STYLES: Record<ConfidenceLevel, string> = {
  */
 export function ConfidenceBadge({ level }: { level: ConfidenceLevel }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 text-center">
+    <div className="flex min-w-0 max-w-full flex-col items-center gap-1.5 text-center">
       <span
         className={cn(
           "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",

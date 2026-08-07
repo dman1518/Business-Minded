@@ -128,7 +128,11 @@ export function LeadCaptureForm({
               which some bots skip), left blank by humans, and rejected
               server-side if filled in. `tabIndex=-1` and `autoComplete=off`
               keep it out of the keyboard-navigation and autofill paths. */}
-          <div className="absolute -left-[9999px] top-auto h-0 w-0 overflow-hidden" aria-hidden="true">
+          <div
+            className="absolute h-px w-px overflow-hidden whitespace-nowrap border-0 p-0"
+            style={{ clip: "rect(0,0,0,0)", clipPath: "inset(50%)" }}
+            aria-hidden="true"
+          >
             <Label htmlFor="website">Website</Label>
             <Input
               id="website"
@@ -160,7 +164,7 @@ export function LeadCaptureForm({
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={submitting || !values.consent}>
               {submitting ? "Submitting…" : intent === "email" ? "Email My Report" : "Download Report"}
             </Button>
