@@ -229,7 +229,7 @@ export class PdfReportEngine implements ReportEngine {
     );
 
     y -= 10;
-    page.drawText(`Confidence Level: ${result.confidenceLevel}`, {
+    page.drawText(`Assessment Completeness: ${result.confidenceLevel}`, {
       x: MARGIN,
       y,
       size: 10,

@@ -8,10 +8,15 @@ const STYLES: Record<ConfidenceLevel, string> = {
 };
 
 /**
- * Confidence reflects how many questions were answered, not how strong
- * the business is. A low score with high confidence is a well-evidenced
- * low score; a low confidence result just means more answers would
- * sharpen the picture — it is never a judgment on the business itself.
+ * Displayed to users as "Assessment completeness" rather than
+ * "Confidence" -- the current calculation reflects only how many
+ * questions were answered, not evidence quality, answer consistency,
+ * or available business data. "Confidence" is reserved for a future
+ * version whose calculation actually incorporates those signals; using
+ * that word today would overstate what this number means. The
+ * underlying domain type/field name (ConfidenceLevel /
+ * result.confidenceLevel) is unchanged -- this is a display-copy-only
+ * rename, not a recalculation.
  */
 export function ConfidenceBadge({ level }: { level: ConfidenceLevel }) {
   return (
@@ -22,11 +27,11 @@ export function ConfidenceBadge({ level }: { level: ConfidenceLevel }) {
           STYLES[level]
         )}
       >
-        Confidence: {level}
+        Assessment completeness: {level}
       </span>
       <p className="max-w-xs text-xs text-muted-foreground">
-        Confidence reflects how many questions you answered — not how strong
-        your business is.
+        Reflects how many questions you answered — not how strong your
+        business is.
       </p>
     </div>
   );
