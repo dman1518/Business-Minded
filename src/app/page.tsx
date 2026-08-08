@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 /**
  * Landing Page — server component, no client JS required to render
@@ -7,20 +8,24 @@ import { Button } from "@/components/ui/button";
  */
 export default function LandingPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-16 sm:px-6 sm:py-24">
+    <main className="flex min-h-screen flex-col items-center px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto flex min-w-0 max-w-2xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center rounded-full border border-border bg-white/60 px-4 py-1 text-xs font-medium tracking-wide text-muted-foreground">
           BUSINESS MINDED
         </span>
 
         <h1 className="break-words text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
-          Know what&apos;s holding your business back.
+          Discover the one constraint limiting your business—and the three
+          actions that can create more money and freedom.
         </h1>
 
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-          Answer a few questions and receive your Business Minded Score along
-          with personalized recommendations to increase business value and
-          reduce owner dependence.
+          Get your Business Minded Score and a personalized action plan built from your answers —
+          free, private, and ready in minutes.
+        </p>
+
+        <p className="mt-4 text-sm font-medium tracking-wide text-muted-foreground">
+          Free &bull; 2 minutes &bull; 10 questions
         </p>
 
         <div className="mt-10">
@@ -29,6 +34,8 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
+
+      <SiteFooter />
     </main>
   );
 }
