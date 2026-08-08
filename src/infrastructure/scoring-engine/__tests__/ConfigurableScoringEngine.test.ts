@@ -6,11 +6,12 @@ import { buildValidQuestionSet, buildValidScoringConfig } from "./fixtures";
 const engine = new ConfigurableScoringEngine();
 
 /**
- * money -> 5,5   (normalized 100)
- * operations -> 1,1 (normalized 0)
- * growth -> 3,3  (normalized 50)
- * freedom -> 4,4 (normalized 75)
- * resilience -> 2,2 (normalized 25)
+ * money -> 5,5   (normalized 100 -> 20/20)
+ * operations -> 1,1 (normalized 0 -> 0/20)
+ * growth -> 3,3  (normalized 50 -> 10/20)
+ * freedom -> 4,4 (normalized 75 -> 15/20)
+ * resilience -> 2,2 (normalized 25 -> 5/20)
+ * sum: 20 + 0 + 10 + 15 + 5 = 50
  */
 function fullAnswers(): Answer[] {
   return [
@@ -40,7 +41,6 @@ describe("ConfigurableScoringEngine", () => {
 
     const result = engine.score(fullAnswers(), questionSet, config);
 
-    // (100 + 0 + 50 + 75 + 25) * 0.2 = 50, exactly.
     expect(result.overallScore).toBe(50);
   });
 
@@ -55,21 +55,84 @@ describe("ConfigurableScoringEngine", () => {
     expect(second).toEqual(first);
   });
 
-  it("normalizes category scores from the configured scale to 0-100", () => {
+  it("REQUIRED TEST: always returns exactly five dimensions, and their scores sum to the overall score", () => {
+    const questionSet = buildValidQuestionSet();
+    const config = buildValidScoringConfig();
+
+    const result = engine.score(fullAnswers(), questionSet, config);
+
+    expect(result.categoryScores).toHaveLength(5);
+    expect(result.categoryScores.map((c) => c.categoryId)).toEqual([
+      "money",
+      "operations",
+      "growth",
+      "freedom",
+      "resilience",
+    ]);
+
+    const sumOfDimensions = result.categoryScores.reduce((sum, c) => sum + c.score, 0);
+    expect(sumOfDimensions).toBe(result.overallScore);
+  });
+
+  it("REQUIRED TEST: each dimension score is capped at 20 points", () => {
+    const questionSet = buildValidQuestionSet();
+    const config = buildValidScoringConfig();
+
+    // Max out every answer.
+    const maxAnswers: Answer[] = questionSet.questions.map((q) => ({ questionId: q.id, value: 5 }));
+    const result = engine.score(maxAnswers, questionSet, config);
+
+    for (const category of result.categoryScores) {
+      expect(category.score).toBeLessThanOrEqual(20);
+      expect(category.score).toBeGreaterThanOrEqual(0);
+    }
+    expect(result.overallScore).toBe(100);
+  });
+
+  it("REQUIRED TEST: Freedom is included in the overall score and is never a separate top-level score", () => {
+    const questionSet = buildValidQuestionSet();
+    const config = buildValidScoringConfig();
+
+    const result = engine.score(fullAnswers(), questionSet, config);
+    const freedom = result.categoryScores.find((c) => c.categoryId === "freedom");
+
+    expect(freedom).toBeDefined();
+    expect(freedom?.score).toBe(15);
+    // Freedom contributes to overallScore like every other category —
+    // there is no separate "freedom score" field anywhere on the result.
+    expect(Object.keys(result)).not.toContain("freedomScore");
+    expect(Object.keys(result)).not.toContain("freedom");
+  });
+
+  it("normalizes category scores to a 0-20 scale", () => {
     const questionSet = buildValidQuestionSet();
     const config = buildValidScoringConfig();
 
     const result = engine.score(fullAnswers(), questionSet, config);
     const byId = Object.fromEntries(result.categoryScores.map((c) => [c.categoryId, c.score]));
 
-    expect(byId.money).toBe(100);
+    expect(byId.money).toBe(20);
     expect(byId.operations).toBe(0);
-    expect(byId.growth).toBe(50);
-    expect(byId.freedom).toBe(75);
-    expect(byId.resilience).toBe(25);
+    expect(byId.growth).toBe(10);
+    expect(byId.freedom).toBe(15);
+    expect(byId.resilience).toBe(5);
   });
 
-  it("excludes a fully-skipped category and re-normalizes weight across the rest", () => {
+  it("assigns a category status from the configured thresholds", () => {
+    const questionSet = buildValidQuestionSet();
+    const config = buildValidScoringConfig();
+
+    const result = engine.score(fullAnswers(), questionSet, config);
+    const statusById = Object.fromEntries(result.categoryScores.map((c) => [c.categoryId, c.status]));
+
+    expect(statusById.money).toBe("Strength"); // 20 >= 16
+    expect(statusById.freedom).toBe("Developing"); // 15, 10 <= 15 < 16
+    expect(statusById.growth).toBe("Developing"); // 10 >= 10
+    expect(statusById.operations).toBe("Constraint"); // 0
+    expect(statusById.resilience).toBe("Constraint"); // 5 < 10
+  });
+
+  it("marks a fully-skipped category as Insufficient data, scores it 0, and excludes it from ranking-based selections", () => {
     const questionSet = buildValidQuestionSet();
     const config = buildValidScoringConfig();
 
@@ -78,13 +141,22 @@ describe("ConfigurableScoringEngine", () => {
 
     const result = engine.score(answers, questionSet, config);
 
-    expect(result.categoryScores.find((c) => c.categoryId === "freedom")).toBeUndefined();
-    expect(result.categoryScores).toHaveLength(4);
+    // Still exactly five dimensions — freedom is present, just unscored.
+    expect(result.categoryScores).toHaveLength(5);
+    const freedom = result.categoryScores.find((c) => c.categoryId === "freedom");
+    expect(freedom?.score).toBe(0);
+    expect(freedom?.status).toBe("Insufficient data");
 
-    // Remaining categories (money 100, operations 0, growth 50, resilience 25),
-    // each re-weighted to 0.25 of the total after freedom is dropped:
-    // 100*0.25 + 0*0.25 + 50*0.25 + 25*0.25 = 43.75 -> rounds to 44.
-    expect(result.overallScore).toBe(44);
+    // Overall score is the direct sum of all five (missing category contributes 0).
+    // money 20 + operations 0 + growth 10 + freedom 0 + resilience 5 = 35.
+    expect(result.overallScore).toBe(35);
+
+    // Freedom must never be selected as the constraint, opportunity, or a
+    // priority just because "Insufficient data" scores 0 — that would
+    // misrepresent missing evidence as a measured weakness.
+    expect(result.biggestConstraint.categoryId).not.toBe("freedom");
+    expect(result.biggestOpportunity.categoryId).not.toBe("freedom");
+    expect(result.topPriorities.map((p) => p.categoryId)).not.toContain("freedom");
   });
 
   it("scores a category from a single answered question when its sibling question is skipped", () => {
@@ -96,8 +168,9 @@ describe("ConfigurableScoringEngine", () => {
     const result = engine.score(answers, questionSet, config);
     const money = result.categoryScores.find((c) => c.categoryId === "money");
 
-    // money_1 alone = 5 -> normalized 100.
-    expect(money?.score).toBe(100);
+    // money_1 alone = 5 -> normalized 100 -> 20/20.
+    expect(money?.score).toBe(20);
+    expect(money?.status).toBe("Strength");
   });
 
   it("throws if every question was skipped", () => {
@@ -113,23 +186,36 @@ describe("ConfigurableScoringEngine", () => {
 
     const result = engine.score(fullAnswers(), questionSet, config);
 
-    // operations (0) is lowest, resilience (25) is second-lowest.
+    // operations (0) is lowest, resilience (5) is second-lowest.
     expect(result.biggestConstraint.categoryId).toBe("operations");
     expect(result.biggestOpportunity.categoryId).toBe("resilience");
   });
 
-  it("returns the recommendations for the N lowest-scoring categories as top priorities", () => {
+  it("cites the actual score as evidence in the constraint and opportunity descriptions", () => {
     const questionSet = buildValidQuestionSet();
     const config = buildValidScoringConfig();
 
     const result = engine.score(fullAnswers(), questionSet, config);
 
-    // Lowest three: operations (0), resilience (25), growth (50).
-    expect(result.topPriorities).toEqual([
-      config.categoryInsights.operations.recommendation,
-      config.categoryInsights.resilience.recommendation,
-      config.categoryInsights.growth.recommendation,
-    ]);
+    expect(result.biggestConstraint.description).toContain("0/20");
+    expect(result.biggestOpportunity.description).toContain("5/20");
+  });
+
+  it("returns action/why/timeframe for the N lowest-scoring categories as top priorities", () => {
+    const questionSet = buildValidQuestionSet();
+    const config = buildValidScoringConfig();
+
+    const result = engine.score(fullAnswers(), questionSet, config);
+
+    // Lowest three: operations (0), resilience (5), growth (10).
+    expect(result.topPriorities.map((p) => p.categoryId)).toEqual(["operations", "resilience", "growth"]);
+    expect(result.topPriorities[0]).toEqual({
+      categoryId: "operations",
+      categoryName: "Operations",
+      action: config.categoryInsights.operations.priorityAction,
+      whyItMatters: config.categoryInsights.operations.priorityWhyItMatters,
+      timeframe: config.categoryInsights.operations.priorityTimeframe,
+    });
   });
 
   describe("confidence — evidence completeness, not score spread", () => {

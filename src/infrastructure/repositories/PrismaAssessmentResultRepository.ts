@@ -55,17 +55,4 @@ export class PrismaAssessmentResultRepository implements AssessmentResultReposit
       createdAt: record.createdAt,
     };
   }
-
-  private toDomain(
-    record: { id: string; createdAt: Date },
-    result: AssessmentScoreResult,
-    rawAnswers: Record<string, number>
-  ): SavedAssessmentResult {
-    return {
-      ...result,
-      id: record.id,
-      rawAnswers,
-      createdAt: record.createdAt,
-    };
-  }
 }

@@ -5,10 +5,9 @@ import { REQUIRED_CATEGORY_IDS } from "@/domain/policies/RequiredCategories";
 /**
  * Minimal, hand-computable fixtures for the locked Business Minded
  * Framework v1: 5 equally-weighted categories, 2 questions each,
- * a 1-5 answer scale, and round-number confidence thresholds. Used by
- * both the scoring-engine and config-validation test suites so every
- * test starts from a known-valid baseline and mutates one thing at a
- * time.
+ * a 1-5 answer scale, and round-number thresholds. Used by both the
+ * scoring-engine and config-validation test suites so every test
+ * starts from a known-valid baseline and mutates one thing at a time.
  */
 export function buildValidQuestionSet(): QuestionSet {
   return {
@@ -49,7 +48,11 @@ export function buildValidScoringConfig(): ScoringConfig {
       opportunityDescription: `${id} opportunity description`,
       constraintHeadline: `${id} constraint headline`,
       constraintDescription: `${id} constraint description`,
-      recommendation: `${id} recommendation`,
+      strengthHeadline: `${id} strength headline`,
+      strengthDescription: `${id} strength description`,
+      priorityAction: `${id} priority action`,
+      priorityWhyItMatters: `${id} priority why`,
+      priorityTimeframe: `${id} priority timeframe`,
     };
   }
 
@@ -62,6 +65,15 @@ export function buildValidScoringConfig(): ScoringConfig {
       { minCompleteness: 0.9, level: "High" },
       { minCompleteness: 0.6, level: "Medium" },
       { minCompleteness: 0, level: "Low" },
+    ],
+    categoryStatusThresholds: [
+      { minScore: 16, status: "Strength" },
+      { minScore: 10, status: "Developing" },
+      { minScore: 0, status: "Constraint" },
+    ],
+    scoreInterpretationThresholds: [
+      { minScore: 50, text: "Good, at {score}." },
+      { minScore: 0, text: "Needs work, at {score}." },
     ],
     topPriorityCount: 3,
   };
