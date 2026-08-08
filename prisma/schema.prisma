@@ -23,6 +23,11 @@ model AssessmentResult {
   topPriorities       Json // string[]
   confidenceLevel     String
   rawAnswers          Json // { [questionId]: answerValue } — for auditing/debugging scoring
+  // Unscored segmentation info from the intro screen (industry, company
+  // size, revenue range). Never used in scoring — internal lead
+  // qualification only. Null when the respondent skipped the intro
+  // screen entirely. See src/domain/value-objects/Segmentation.ts.
+  segmentation        Json?
   createdAt           DateTime @default(now())
 
   lead Lead?

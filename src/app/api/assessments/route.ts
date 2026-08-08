@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await container.submitAssessment().execute(parsed.data.answers);
+    const result = await container
+      .submitAssessment()
+      .execute(parsed.data.answers, parsed.data.segmentation);
     const config = await container.scoringConfigRepository.getConfig();
     // Public response never includes raw answers — those stay internal
     // for auditing only. See AssessmentResultView.

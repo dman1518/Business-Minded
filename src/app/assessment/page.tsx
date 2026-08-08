@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { QuestionSet } from "@/domain/entities/Question";
 import { useAssessmentProgress } from "@/lib/hooks/useAssessmentProgress";
 import { QuestionCard } from "@/components/assessment/QuestionCard";
+import { IntroScreen } from "@/components/assessment/IntroScreen";
 import { ProgressIndicator } from "@/components/assessment/ProgressIndicator";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
@@ -18,8 +19,20 @@ export default function AssessmentPage() {
   const hasTrackedStart = useRef(false);
   const lastTrackedQuestionIndex = useRef<number | null>(null);
 
-  const { currentIndex, answers, hydrated, setAnswer, skipAnswer, goNext, goBack, reset } =
-    useAssessmentProgress();
+  const {
+    currentIndex,
+    answers,
+    segmentation,
+    introCompleted,
+    hydrated,
+    setAnswer,
+    skipAnswer,
+    setSegmentationField,
+    completeIntro,
+    goNext,
+    goBack,
+    reset,
+  } = useAssessmentProgress();
 
   useEffect(() => {
     fetch("/api/questions")
@@ -36,12 +49,12 @@ export default function AssessmentPage() {
   const safeIndex = questionSet ? Math.min(currentIndex, total - 1) : 0;
   const question = questionSet ? questions[safeIndex] : undefined;
 
-  // Fire assessment_started once (the first time the assessment has
-  // loaded and is ready to show a question), and question_viewed
-  // whenever the visible question actually changes — guarded by refs
-  // so re-renders don't re-fire the same event.
+  // Fire assessment_started once (the first time the intro screen has
+  // been completed and the assessment is ready to show a question), and
+  // question_viewed whenever the visible question actually changes —
+  // guarded by refs so re-renders don't re-fire the same event.
   useEffect(() => {
-    if (!questionSet || !hydrated || !question) return;
+    if (!questionSet || !hydrated || !introCompleted || !question) return;
 
     if (!hasTrackedStart.current) {
       hasTrackedStart.current = true;
@@ -56,13 +69,29 @@ export default function AssessmentPage() {
         dimension: question.categoryId,
       });
     }
-  }, [questionSet, hydrated, question, safeIndex]);
+  }, [questionSet, hydrated, introCompleted, question, safeIndex]);
 
   if (loadError) {
     return <CenteredMessage>{loadError}</CenteredMessage>;
   }
 
-  if (!questionSet || !hydrated || !question) {
+  if (!questionSet || !hydrated) {
+    return <CenteredMessage>Loading assessment…</CenteredMessage>;
+  }
+
+  if (!introCompleted) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-10 sm:px-6 sm:py-16">
+        <IntroScreen
+          segmentation={segmentation}
+          onChange={setSegmentationField}
+          onContinue={completeIntro}
+        />
+      </main>
+    );
+  }
+
+  if (!question) {
     return <CenteredMessage>Loading assessment…</CenteredMessage>;
   }
 
@@ -92,6 +121,7 @@ export default function AssessmentPage() {
             questionId,
             value,
           })),
+          segmentation: Object.keys(segmentation).length > 0 ? segmentation : undefined,
         }),
       });
 

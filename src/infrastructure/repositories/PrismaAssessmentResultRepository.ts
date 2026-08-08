@@ -1,6 +1,7 @@
 import { AssessmentResultRepository } from "@/domain/repositories/AssessmentResultRepository";
 import { AssessmentScoreResult } from "@/domain/entities/Score";
 import { SavedAssessmentResult } from "@/domain/entities/AssessmentResult";
+import { Segmentation } from "@/domain/value-objects/Segmentation";
 import { prisma } from "@/infrastructure/db/prisma";
 
 /**
@@ -9,7 +10,8 @@ import { prisma } from "@/infrastructure/db/prisma";
 export class PrismaAssessmentResultRepository implements AssessmentResultRepository {
   async save(
     result: AssessmentScoreResult,
-    rawAnswers: Record<string, number>
+    rawAnswers: Record<string, number>,
+    segmentation?: Segmentation
   ): Promise<SavedAssessmentResult> {
     const saved = await prisma.assessmentResult.create({
       data: {
@@ -20,10 +22,11 @@ export class PrismaAssessmentResultRepository implements AssessmentResultReposit
         topPriorities: result.topPriorities as unknown as object,
         confidenceLevel: result.confidenceLevel,
         rawAnswers: rawAnswers as unknown as object,
+        segmentation: segmentation ? (segmentation as unknown as object) : undefined,
       },
     });
 
-    return this.toDomain(saved, result, rawAnswers);
+    return this.toDomain(saved, result, rawAnswers, segmentation);
   }
 
   async findById(id: string): Promise<SavedAssessmentResult | null> {
@@ -39,6 +42,7 @@ export class PrismaAssessmentResultRepository implements AssessmentResultReposit
       topPriorities: record.topPriorities as unknown as SavedAssessmentResult["topPriorities"],
       confidenceLevel: record.confidenceLevel as SavedAssessmentResult["confidenceLevel"],
       rawAnswers: record.rawAnswers as unknown as Record<string, number>,
+      segmentation: (record.segmentation as unknown as Segmentation | null) ?? undefined,
       createdAt: record.createdAt,
     };
   }
@@ -46,12 +50,14 @@ export class PrismaAssessmentResultRepository implements AssessmentResultReposit
   private toDomain(
     record: { id: string; createdAt: Date },
     result: AssessmentScoreResult,
-    rawAnswers: Record<string, number>
+    rawAnswers: Record<string, number>,
+    segmentation?: Segmentation
   ): SavedAssessmentResult {
     return {
       ...result,
       id: record.id,
       rawAnswers,
+      segmentation,
       createdAt: record.createdAt,
     };
   }

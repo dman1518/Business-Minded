@@ -1,5 +1,6 @@
 import { AssessmentScoreResult } from "../entities/Score";
 import { SavedAssessmentResult } from "../entities/AssessmentResult";
+import { Segmentation } from "../value-objects/Segmentation";
 
 /**
  * Port: persists and retrieves scored assessment results.
@@ -8,7 +9,8 @@ import { SavedAssessmentResult } from "../entities/AssessmentResult";
 export interface AssessmentResultRepository {
   save(
     result: AssessmentScoreResult,
-    rawAnswers: Record<string, number>
+    rawAnswers: Record<string, number>,
+    segmentation?: Segmentation
   ): Promise<SavedAssessmentResult>;
   findById(id: string): Promise<SavedAssessmentResult | null>;
 }

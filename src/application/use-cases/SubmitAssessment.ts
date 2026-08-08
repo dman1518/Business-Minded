@@ -5,6 +5,7 @@ import { ScoringConfigRepository } from "@/domain/repositories/ScoringConfigRepo
 import { ScoringEngine } from "@/domain/repositories/ScoringEngine";
 import { AssessmentResultRepository } from "@/domain/repositories/AssessmentResultRepository";
 import { validateAnswers } from "@/domain/policies/AnswerValidation";
+import { Segmentation } from "@/domain/value-objects/Segmentation";
 
 /**
  * Use case: score a completed assessment and persist the result.
@@ -21,7 +22,7 @@ export class SubmitAssessment {
     private readonly assessmentResultRepository: AssessmentResultRepository
   ) {}
 
-  async execute(answers: Answer[]): Promise<SavedAssessmentResult> {
+  async execute(answers: Answer[], segmentation?: Segmentation): Promise<SavedAssessmentResult> {
     if (!answers.length) {
       throw new Error("At least one answer is required to score an assessment.");
     }
@@ -46,6 +47,6 @@ export class SubmitAssessment {
       return acc;
     }, {});
 
-    return this.assessmentResultRepository.save(result, rawAnswers);
+    return this.assessmentResultRepository.save(result, rawAnswers, segmentation);
   }
 }

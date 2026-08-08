@@ -9,6 +9,7 @@ import { SavedAssessmentResult } from "@/domain/entities/AssessmentResult";
 import { AssessmentScoreResult } from "@/domain/entities/Score";
 import { Answer } from "@/domain/entities/Answer";
 import { buildValidQuestionSet, buildValidScoringConfig } from "@/infrastructure/scoring-engine/__tests__/fixtures";
+import { Segmentation } from "@/domain/value-objects/Segmentation";
 
 /**
  * In-memory fakes for the two repository ports SubmitAssessment doesn't
@@ -30,19 +31,27 @@ function buildFakeScoringConfigRepository(): ScoringConfigRepository {
   };
 }
 
-function buildSpyingResultRepository(): AssessmentResultRepository & { saveCallCount: number } {
-  const state = { saveCallCount: 0 };
+function buildSpyingResultRepository(): AssessmentResultRepository & {
+  saveCallCount: number;
+  lastSegmentation: Segmentation | undefined;
+} {
+  const state = { saveCallCount: 0, lastSegmentation: undefined as Segmentation | undefined };
 
   return {
     get saveCallCount() {
       return state.saveCallCount;
     },
+    get lastSegmentation() {
+      return state.lastSegmentation;
+    },
     async save(
       result: AssessmentScoreResult,
-      rawAnswers: Record<string, number>
+      rawAnswers: Record<string, number>,
+      segmentation?: Segmentation
     ): Promise<SavedAssessmentResult> {
       state.saveCallCount += 1;
-      return { ...result, id: "fake-id", rawAnswers, createdAt: new Date("2026-01-01") };
+      state.lastSegmentation = segmentation;
+      return { ...result, id: "fake-id", rawAnswers, segmentation, createdAt: new Date("2026-01-01") };
     },
     async findById(): Promise<SavedAssessmentResult | null> {
       return null;
@@ -129,5 +138,23 @@ describe("SubmitAssessment (server-side input integrity)", () => {
 
     await expect(maliciousUseCase.execute(padded)).rejects.toBeInstanceOf(InvalidAnswersError);
     expect(honestResult.confidenceLevel).toBe("Low"); // 5/10 = 50%
+  });
+
+  it("passes optional segmentation through to the repository unchanged", async () => {
+    const { useCase, resultRepository } = buildUseCase();
+    const segmentation: Segmentation = { industry: "retail_ecommerce", companySize: "6_20" };
+
+    const result = await useCase.execute(genuineAnswers(), segmentation);
+
+    expect(resultRepository.lastSegmentation).toEqual(segmentation);
+    expect(result.segmentation).toEqual(segmentation);
+  });
+
+  it("saves with segmentation undefined when the intro screen was skipped entirely", async () => {
+    const { useCase, resultRepository } = buildUseCase();
+
+    await useCase.execute(genuineAnswers());
+
+    expect(resultRepository.lastSegmentation).toBeUndefined();
   });
 });
