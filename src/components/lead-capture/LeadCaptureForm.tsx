@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { trackEvent } from "@/lib/analytics";
 
 export interface LeadFormValues {
   firstName: string;
@@ -51,6 +52,11 @@ export function LeadCaptureForm({ assessmentResultId, onSubmitted, onCancel }: L
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    trackEvent({ name: "lead_form_started", assessmentId: assessmentResultId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
@@ -74,6 +80,7 @@ export function LeadCaptureForm({ assessmentResultId, onSubmitted, onCancel }: L
         throw new Error(body.error ?? "Unable to save your details. Please try again.");
       }
 
+      trackEvent({ name: "lead_submitted", assessmentId: assessmentResultId });
       await onSubmitted(values);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

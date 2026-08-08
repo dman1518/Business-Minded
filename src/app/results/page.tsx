@@ -11,6 +11,7 @@ import { ConfidenceBadge } from "@/components/results/ConfidenceBadge";
 import { LeadCaptureForm, LeadFormValues } from "@/components/lead-capture/LeadCaptureForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { trackEvent } from "@/lib/analytics";
 
 type ViewStep = "results" | "leadCapture" | "complete";
 
@@ -41,14 +42,20 @@ function ResultsContent() {
         if (!res.ok) throw new Error("Not found");
         return res.json();
       })
-      .then((data: AssessmentResultView) => setResult(data))
+      .then((data: AssessmentResultView) => {
+        setResult(data);
+        trackEvent({ name: "results_viewed", assessmentId: id });
+      })
       .catch(() => setError("We couldn't find that assessment result."));
   }, [id]);
 
   async function downloadReport() {
     if (!id) return;
     const response = await fetch(`/api/report?assessmentResultId=${id}`);
+    if (!response.ok) return;
     const blob = await response.blob();
+    trackEvent({ name: "report_generated", assessmentId: id });
+
     const url = window.URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -57,6 +64,7 @@ function ResultsContent() {
     anchor.click();
     anchor.remove();
     window.URL.revokeObjectURL(url);
+    trackEvent({ name: "report_delivered", assessmentId: id });
   }
 
   async function handleLeadSubmitted(_values: LeadFormValues) {
@@ -64,12 +72,17 @@ function ResultsContent() {
     setStep("complete");
   }
 
+  function handleRetake() {
+    trackEvent({ name: "assessment_retake_started", assessmentId: id ?? undefined });
+    router.push("/assessment");
+  }
+
   if (error) {
     return (
       <CenteredMessage>
         <div className="flex flex-col items-center gap-4">
           <p>{error}</p>
-          <Button variant="outline" onClick={() => router.push("/assessment")}>
+          <Button variant="outline" onClick={handleRetake}>
             Retake the assessment
           </Button>
         </div>
@@ -127,8 +140,15 @@ function ResultsContent() {
 
           <div className="flex flex-col items-center gap-2">
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <Button onClick={() => setStep("leadCapture")}>Get My Full Report</Button>
-              <Button variant="ghost" onClick={() => router.push("/assessment")}>
+              <Button
+                onClick={() => {
+                  if (id) trackEvent({ name: "report_cta_clicked", assessmentId: id });
+                  setStep("leadCapture");
+                }}
+              >
+                Get My Full Report
+              </Button>
+              <Button variant="ghost" onClick={handleRetake}>
                 Retake Assessment
               </Button>
             </div>
@@ -160,7 +180,7 @@ function ResultsContent() {
               <Button variant="outline" onClick={downloadReport}>
                 Download again
               </Button>
-              <Button variant="ghost" onClick={() => router.push("/assessment")}>
+              <Button variant="ghost" onClick={handleRetake}>
                 Retake Assessment
               </Button>
             </div>

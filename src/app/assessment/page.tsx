@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QuestionSet } from "@/domain/entities/Question";
 import { useAssessmentProgress } from "@/lib/hooks/useAssessmentProgress";
 import { QuestionCard } from "@/components/assessment/QuestionCard";
 import { ProgressIndicator } from "@/components/assessment/ProgressIndicator";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 
 export default function AssessmentPage() {
   const router = useRouter();
@@ -14,6 +15,8 @@ export default function AssessmentPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const hasTrackedStart = useRef(false);
+  const lastTrackedQuestionIndex = useRef<number | null>(null);
 
   const { currentIndex, answers, hydrated, setAnswer, skipAnswer, goNext, goBack, reset } =
     useAssessmentProgress();
@@ -28,18 +31,41 @@ export default function AssessmentPage() {
       .catch(() => setLoadError("We couldn't load the assessment. Please refresh the page."));
   }, []);
 
+  const questions = questionSet?.questions ?? [];
+  const total = questions.length;
+  const safeIndex = questionSet ? Math.min(currentIndex, total - 1) : 0;
+  const question = questionSet ? questions[safeIndex] : undefined;
+
+  // Fire assessment_started once (the first time the assessment has
+  // loaded and is ready to show a question), and question_viewed
+  // whenever the visible question actually changes — guarded by refs
+  // so re-renders don't re-fire the same event.
+  useEffect(() => {
+    if (!questionSet || !hydrated || !question) return;
+
+    if (!hasTrackedStart.current) {
+      hasTrackedStart.current = true;
+      trackEvent({ name: "assessment_started" });
+    }
+
+    if (lastTrackedQuestionIndex.current !== safeIndex) {
+      lastTrackedQuestionIndex.current = safeIndex;
+      trackEvent({
+        name: "question_viewed",
+        questionNumber: safeIndex + 1,
+        dimension: question.categoryId,
+      });
+    }
+  }, [questionSet, hydrated, question, safeIndex]);
+
   if (loadError) {
     return <CenteredMessage>{loadError}</CenteredMessage>;
   }
 
-  if (!questionSet || !hydrated) {
+  if (!questionSet || !hydrated || !question) {
     return <CenteredMessage>Loading assessment…</CenteredMessage>;
   }
 
-  const questions = questionSet.questions;
-  const total = questions.length;
-  const safeIndex = Math.min(currentIndex, total - 1);
-  const question = questions[safeIndex];
   const isLastQuestion = safeIndex === total - 1;
   const selectedValue = answers[question.id];
   const canAdvance = selectedValue !== undefined;
@@ -72,6 +98,7 @@ export default function AssessmentPage() {
       if (!response.ok) throw new Error("Submission failed");
 
       const result = await response.json();
+      trackEvent({ name: "assessment_completed", assessmentId: result.id });
       reset();
       router.push(`/results?id=${result.id}`);
     } catch {
@@ -80,13 +107,29 @@ export default function AssessmentPage() {
     }
   }
 
+  function handleSelect(value: number) {
+    if (!question) return;
+    setAnswer(question.id, value);
+    trackEvent({
+      name: "question_answered",
+      questionNumber: safeIndex + 1,
+      dimension: question.categoryId,
+    });
+  }
+
   function handleAdvance() {
     if (!canAdvance) return;
     advance();
   }
 
   function handleSkip() {
+    if (!question) return;
     setSubmitError(null);
+    trackEvent({
+      name: "question_skipped",
+      questionNumber: safeIndex + 1,
+      dimension: question.categoryId,
+    });
     skipAnswer(question.id);
     advance(question.id);
   }
@@ -98,7 +141,7 @@ export default function AssessmentPage() {
       <QuestionCard
         question={question}
         selectedValue={selectedValue}
-        onSelect={(value) => setAnswer(question.id, value)}
+        onSelect={handleSelect}
         onSkip={handleSkip}
         disabled={submitting}
       />

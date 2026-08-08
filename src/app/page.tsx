@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { LandingViewedTracker } from "@/components/layout/LandingViewedTracker";
 
 /**
- * Landing Page — server component, no client JS required to render
- * the hero, so first paint is as fast as the static HTML shell.
+ * Landing Page — server component; the hero itself needs no client JS
+ * to render, so first paint is as fast as the static HTML shell. Only
+ * the tiny LandingViewedTracker island is client-side, for analytics.
  */
 export default function LandingPage() {
   return (
     <main className="flex min-h-screen flex-col items-center px-4 py-16 sm:px-6 sm:py-24">
+      <LandingViewedTracker />
       <div className="mx-auto flex min-w-0 max-w-2xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center rounded-full border border-border bg-white/60 px-4 py-1 text-xs font-medium tracking-wide text-muted-foreground">
           BUSINESS MINDED
