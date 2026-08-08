@@ -87,7 +87,7 @@ export function LeadCaptureForm({ assessmentResultId, onSubmitted, onCancel }: L
         <CardTitle>Get your full report</CardTitle>
         <CardDescription>
           We&apos;ll save your details below and unlock your full Business Minded report as a PDF
-          you can download right away. We&apos;t currently deliver reports by email — save the
+          you can download right away. We don&apos;t currently deliver reports by email — save the
           PDF for your records.
         </CardDescription>
       </CardHeader>
