@@ -108,12 +108,21 @@ describe("validateStartupConfig", () => {
     );
   });
 
-  it("fails if required insight/recommendation text is missing for a category", () => {
+  it("fails if required insight text is missing for a category", () => {
     const config = buildValidScoringConfig();
-    config.categoryInsights.resilience.recommendation = "";
+    config.categoryInsights.resilience.strengthHeadline = "";
 
     expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
-      /Missing or empty "recommendation" text for category "resilience"/
+      /Missing or empty "strengthHeadline" text for category "resilience"/
+    );
+  });
+
+  it("fails if priority action/why/timeframe text is missing for a category", () => {
+    const config = buildValidScoringConfig();
+    config.categoryInsights.money.priorityWhyItMatters = "";
+
+    expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
+      /Missing or empty "priorityWhyItMatters" text for category "money"/
     );
   });
 
@@ -135,6 +144,45 @@ describe("validateStartupConfig", () => {
 
     expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
       /Invalid confidenceThresholds.level "Excellent"/
+    );
+  });
+
+  it("fails if categoryStatusThresholds has no minScore: 0 catch-all", () => {
+    const config = buildValidScoringConfig();
+    config.categoryStatusThresholds = [{ minScore: 10, status: "Developing" }];
+
+    expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
+      /categoryStatusThresholds must include a catch-all entry with minScore: 0/
+    );
+  });
+
+  it("fails if a categoryStatusThresholds status is invalid", () => {
+    const config = buildValidScoringConfig();
+    config.categoryStatusThresholds = [
+      // @ts-expect-error — intentionally invalid for the test
+      { minScore: 0, status: "Amazing" },
+    ];
+
+    expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
+      /Invalid categoryStatusThresholds.status "Amazing"/
+    );
+  });
+
+  it("fails if scoreInterpretationThresholds has no minScore: 0 catch-all", () => {
+    const config = buildValidScoringConfig();
+    config.scoreInterpretationThresholds = [{ minScore: 50, text: "Good." }];
+
+    expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
+      /scoreInterpretationThresholds must include a catch-all entry with minScore: 0/
+    );
+  });
+
+  it("fails if a scoreInterpretationThresholds entry has empty text", () => {
+    const config = buildValidScoringConfig();
+    config.scoreInterpretationThresholds = [{ minScore: 0, text: "" }];
+
+    expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
+      /scoreInterpretationThresholds entries must have non-empty text/
     );
   });
 

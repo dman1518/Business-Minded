@@ -7,7 +7,11 @@ const REQUIRED_INSIGHT_FIELDS: (keyof CategoryInsightConfig)[] = [
   "opportunityDescription",
   "constraintHeadline",
   "constraintDescription",
-  "recommendation",
+  "strengthHeadline",
+  "strengthDescription",
+  "priorityAction",
+  "priorityWhyItMatters",
+  "priorityTimeframe",
 ];
 
 const WEIGHT_EPSILON = 0.001;
@@ -31,6 +35,8 @@ export function validateStartupConfig(questionSet: QuestionSet, scoringConfig: S
   validateQuestions(questionSet, errors);
   validateInsights(scoringConfig, errors);
   validateConfidenceThresholds(scoringConfig, errors);
+  validateCategoryStatusThresholds(scoringConfig, errors);
+  validateScoreInterpretationThresholds(scoringConfig, errors);
   validateTopPriorityCount(scoringConfig, errors);
   validateScale(scoringConfig, errors);
 
@@ -159,6 +165,79 @@ function validateConfidenceThresholds(scoringConfig: ScoringConfig, errors: stri
   if (!hasZeroFloor) {
     errors.push(
       "confidenceThresholds must include a catch-all entry with minCompleteness: 0, so every completeness value resolves to a level."
+    );
+  }
+}
+
+function validateCategoryStatusThresholds(scoringConfig: ScoringConfig, errors: string[]): void {
+  const thresholds = scoringConfig.categoryStatusThresholds;
+
+  if (!Array.isArray(thresholds) || thresholds.length === 0) {
+    errors.push("categoryStatusThresholds must be a non-empty array.");
+    return;
+  }
+
+  const validStatuses = new Set(["Strength", "Developing", "Constraint"]);
+  let hasZeroFloor = false;
+
+  for (const threshold of thresholds) {
+    if (
+      typeof threshold.minScore !== "number" ||
+      Number.isNaN(threshold.minScore) ||
+      threshold.minScore < 0 ||
+      threshold.minScore > 20
+    ) {
+      errors.push(
+        `Invalid categoryStatusThresholds.minScore "${threshold.minScore}" — must be a number between 0 and 20.`
+      );
+    } else if (threshold.minScore === 0) {
+      hasZeroFloor = true;
+    }
+
+    if (!validStatuses.has(threshold.status)) {
+      errors.push(`Invalid categoryStatusThresholds.status "${threshold.status}".`);
+    }
+  }
+
+  if (!hasZeroFloor) {
+    errors.push(
+      "categoryStatusThresholds must include a catch-all entry with minScore: 0, so every category score resolves to a status."
+    );
+  }
+}
+
+function validateScoreInterpretationThresholds(scoringConfig: ScoringConfig, errors: string[]): void {
+  const thresholds = scoringConfig.scoreInterpretationThresholds;
+
+  if (!Array.isArray(thresholds) || thresholds.length === 0) {
+    errors.push("scoreInterpretationThresholds must be a non-empty array.");
+    return;
+  }
+
+  let hasZeroFloor = false;
+
+  for (const threshold of thresholds) {
+    if (
+      typeof threshold.minScore !== "number" ||
+      Number.isNaN(threshold.minScore) ||
+      threshold.minScore < 0 ||
+      threshold.minScore > 100
+    ) {
+      errors.push(
+        `Invalid scoreInterpretationThresholds.minScore "${threshold.minScore}" — must be a number between 0 and 100.`
+      );
+    } else if (threshold.minScore === 0) {
+      hasZeroFloor = true;
+    }
+
+    if (typeof threshold.text !== "string" || threshold.text.trim().length === 0) {
+      errors.push("scoreInterpretationThresholds entries must have non-empty text.");
+    }
+  }
+
+  if (!hasZeroFloor) {
+    errors.push(
+      "scoreInterpretationThresholds must include a catch-all entry with minScore: 0, so every overall score resolves to an interpretation."
     );
   }
 }

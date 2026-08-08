@@ -160,7 +160,7 @@ export class PdfReportEngine implements ReportEngine {
       page.drawRectangle({
         x: barX,
         y,
-        width: (barWidth * Math.min(Math.max(category.score, 0), 100)) / 100,
+        width: (barWidth * Math.min(Math.max(category.score, 0), 20)) / 20,
         height: barHeight,
         color: ACCENT,
       });
@@ -245,7 +245,7 @@ export class PdfReportEngine implements ReportEngine {
     bold: PDFFont,
     regular: PDFFont,
     y: number,
-    topPriorities: string[]
+    topPriorities: SavedAssessmentResult["topPriorities"]
   ): number {
     page.drawText("Top Three Priorities", {
       x: MARGIN,
@@ -261,7 +261,7 @@ export class PdfReportEngine implements ReportEngine {
       y = this.drawWrappedText(
         page,
         regular,
-        priority,
+        `${priority.action} (Dimension: ${priority.categoryName}, ${priority.timeframe})`,
         MARGIN + 16,
         y,
         PAGE_WIDTH - MARGIN * 2 - 16,

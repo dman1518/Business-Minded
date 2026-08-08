@@ -40,9 +40,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await container.submitAssessment().execute(parsed.data.answers);
+    const config = await container.scoringConfigRepository.getConfig();
     // Public response never includes raw answers — those stay internal
     // for auditing only. See AssessmentResultView.
-    return NextResponse.json(toAssessmentResultView(result), { status: 201 });
+    return NextResponse.json(toAssessmentResultView(result, config), { status: 201 });
   } catch (error) {
     if (error instanceof InvalidAnswersError) {
       // Semantic validation against the canonical question set failed

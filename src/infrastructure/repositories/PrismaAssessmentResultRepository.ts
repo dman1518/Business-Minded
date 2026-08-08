@@ -36,9 +36,22 @@ export class PrismaAssessmentResultRepository implements AssessmentResultReposit
       categoryScores: record.categoryScores as unknown as SavedAssessmentResult["categoryScores"],
       biggestOpportunity: record.biggestOpportunity as unknown as SavedAssessmentResult["biggestOpportunity"],
       biggestConstraint: record.biggestConstraint as unknown as SavedAssessmentResult["biggestConstraint"],
-      topPriorities: record.topPriorities as unknown as string[],
+      topPriorities: record.topPriorities as unknown as SavedAssessmentResult["topPriorities"],
       confidenceLevel: record.confidenceLevel as SavedAssessmentResult["confidenceLevel"],
       rawAnswers: record.rawAnswers as unknown as Record<string, number>,
+      createdAt: record.createdAt,
+    };
+  }
+
+  private toDomain(
+    record: { id: string; createdAt: Date },
+    result: AssessmentScoreResult,
+    rawAnswers: Record<string, number>
+  ): SavedAssessmentResult {
+    return {
+      ...result,
+      id: record.id,
+      rawAnswers,
       createdAt: record.createdAt,
     };
   }

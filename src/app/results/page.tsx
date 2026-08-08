@@ -66,7 +66,16 @@ function ResultsContent() {
   }
 
   if (error) {
-    return <CenteredMessage>{error}</CenteredMessage>;
+    return (
+      <CenteredMessage>
+        <div className="flex flex-col items-center gap-4">
+          <p>{error}</p>
+          <Button variant="outline" onClick={() => router.push("/assessment")}>
+            Retake the assessment
+          </Button>
+        </div>
+      </CenteredMessage>
+    );
   }
 
   if (!result) {
@@ -82,6 +91,15 @@ function ResultsContent() {
             <ConfidenceBadge level={result.confidenceLevel} />
           </div>
 
+          {/* 1. Score interpretation */}
+          <Card>
+            <CardContent className="pt-4 sm:pt-6">
+              <p className="min-w-0 break-words text-sm leading-relaxed text-foreground">
+                {result.scoreInterpretation}
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Category Scores</CardTitle>
@@ -91,11 +109,14 @@ function ResultsContent() {
             </CardContent>
           </Card>
 
+          {/* 2-4. What's working / Biggest constraint / Biggest opportunity */}
           <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-            <InsightCard label="Biggest Opportunity" insight={result.biggestOpportunity} tone="positive" />
+            <InsightCard label="What's Working" insight={result.whatsWorking} tone="positive" />
             <InsightCard label="Biggest Constraint" insight={result.biggestConstraint} tone="negative" />
           </div>
+          <InsightCard label="Biggest Opportunity" insight={result.biggestOpportunity} tone="positive" />
 
+          {/* 5. Top three priorities */}
           <Card>
             <CardHeader>
               <CardTitle>Top Three Priorities</CardTitle>
@@ -112,7 +133,7 @@ function ResultsContent() {
                 setStep("leadCapture");
               }}
             >
-              Download Report
+              Get My Full Report
             </Button>
             <Button
               variant="outline"

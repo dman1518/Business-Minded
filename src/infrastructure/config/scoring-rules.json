@@ -12,43 +12,90 @@
   "categoryInsights": {
     "money": {
       "opportunityHeadline": "Strengthen your financial foundation",
-      "opportunityDescription": "Improving margin and revenue predictability is one of the fastest ways to increase what your business is worth.",
+      "opportunityDescription": "Improving margin and revenue predictability is one of the fastest ways to increase what your business is worth and to give you more freedom in how you run it.",
       "constraintHeadline": "Inconsistent financial results",
       "constraintDescription": "Unpredictable profit and cash flow make it harder to plan, finance, or eventually sell the business.",
-      "recommendation": "Review your pricing and margins this month, and identify one way to make next month's revenue more predictable."
+      "strengthHeadline": "Your financial foundation is solid",
+      "strengthDescription": "Strong, predictable margins give you options — to reinvest, to plan ahead, and to make decisions from a position of strength rather than scarcity.",
+      "priorityAction": "Review your pricing and margins this month, and identify one way to make next month's revenue more predictable.",
+      "priorityWhyItMatters": "Predictable profit and cash flow directly increase what the business is worth and reduce financial stress on you personally.",
+      "priorityTimeframe": "This month"
     },
     "operations": {
       "opportunityHeadline": "Make execution more consistent",
-      "opportunityDescription": "Documented, repeatable processes turn what's in your head into something the business can rely on.",
+      "opportunityDescription": "Turning what's in your head into documented, repeatable processes increases what the business is worth without you personally, and frees up your time.",
       "constraintHeadline": "Inconsistent execution",
       "constraintDescription": "Without documented processes, quality and output depend on who happens to be doing the work.",
-      "recommendation": "Document your top two recurring processes as simple step-by-step guides this quarter."
+      "strengthHeadline": "Your operations run consistently",
+      "strengthDescription": "Documented, repeatable processes mean quality doesn't depend on any one person — including you — which protects both business value and your freedom.",
+      "priorityAction": "Document your top two recurring processes as simple step-by-step guides this quarter.",
+      "priorityWhyItMatters": "Documented processes let the business run consistently without depending on any one person, including you.",
+      "priorityTimeframe": "This quarter"
     },
     "growth": {
       "opportunityHeadline": "Build a repeatable path to new customers",
-      "opportunityDescription": "A predictable way to generate demand makes future growth less dependent on luck or one-off effort.",
+      "opportunityDescription": "A predictable way to generate demand makes future growth less dependent on you personally, increasing both the value of the business and your freedom to step back.",
       "constraintHeadline": "Unclear path to growth",
       "constraintDescription": "Without a repeatable way to attract customers, growth is unpredictable and hard to plan around.",
-      "recommendation": "Identify the one marketing or sales activity that has worked best, and turn it into a repeatable process."
+      "strengthHeadline": "You have a repeatable path to growth",
+      "strengthDescription": "A reliable way to bring in new customers makes future growth less dependent on luck or one-off effort, which supports both business value and your freedom.",
+      "priorityAction": "Identify the one marketing or sales activity that has worked best, and turn it into a repeatable process.",
+      "priorityWhyItMatters": "A repeatable growth engine makes future revenue less dependent on luck or one-off effort.",
+      "priorityTimeframe": "This quarter"
     },
     "freedom": {
       "opportunityHeadline": "Create more freedom for yourself",
-      "opportunityDescription": "Every decision or relationship that moves off your desk gives you more freedom and makes the business more valuable.",
+      "opportunityDescription": "Every decision or relationship that moves off your desk gives you more freedom and makes the business more valuable to a future buyer.",
       "constraintHeadline": "The business depends heavily on you",
       "constraintDescription": "If the business can't run well without you, it limits your freedom and is worth less to a future buyer.",
-      "recommendation": "Hand off one customer or vendor relationship you currently manage personally to a team member this month."
+      "strengthHeadline": "The business doesn't depend entirely on you",
+      "strengthDescription": "Key relationships and decisions that don't run through you personally give you real freedom and make the business more valuable to a future buyer.",
+      "priorityAction": "Hand off one customer or vendor relationship you currently manage personally to a team member this month.",
+      "priorityWhyItMatters": "Every relationship that moves off your desk gives you more freedom and makes the business less dependent on you.",
+      "priorityTimeframe": "This month"
     },
     "resilience": {
       "opportunityHeadline": "Build a stronger safety net",
-      "opportunityDescription": "A business that can absorb setbacks is a business that can keep performing when life doesn't go according to plan.",
+      "opportunityDescription": "A business that can absorb setbacks protects its own value and gives you the freedom to take time away without everything falling apart.",
       "constraintHeadline": "Limited ability to absorb setbacks",
       "constraintDescription": "Without a financial or operational cushion, a single setback can put the business in real jeopardy.",
-      "recommendation": "Set a target cash reserve and start setting aside a fixed amount each month until you reach it."
+      "strengthHeadline": "You're prepared to absorb setbacks",
+      "strengthDescription": "A financial and operational cushion protects the value you've built and gives you the freedom to weather a setback without everything falling apart.",
+      "priorityAction": "Set a target cash reserve and start setting aside a fixed amount each month until you reach it.",
+      "priorityWhyItMatters": "A cash reserve protects the business's value and gives you the freedom to weather a setback without panic.",
+      "priorityTimeframe": "Ongoing, starting this month"
     }
   },
   "confidenceThresholds": [
     { "minCompleteness": 0.9, "level": "High" },
     { "minCompleteness": 0.6, "level": "Medium" },
     { "minCompleteness": 0, "level": "Low" }
+  ],
+  "categoryStatusThresholds": [
+    { "minScore": 16, "status": "Strength" },
+    { "minScore": 10, "status": "Developing" },
+    { "minScore": 0, "status": "Constraint" }
+  ],
+  "scoreInterpretationThresholds": [
+    {
+      "minScore": 80,
+      "text": "At {score}/100, your business is performing strongly across most of what matters for its value and your freedom. This is a strong foundation to build on, and this report highlights the single dimension with the most room to grow."
+    },
+    {
+      "minScore": 60,
+      "text": "At {score}/100, your business has a solid foundation with a few clear areas holding it back. Addressing the constraint below is likely to have an outsized impact on both business value and your freedom."
+    },
+    {
+      "minScore": 40,
+      "text": "At {score}/100, your business is developing but has meaningful gaps that are limiting its value and your freedom right now. These gaps are common and addressable."
+    },
+    {
+      "minScore": 20,
+      "text": "At {score}/100, your business is carrying real risk across multiple dimensions, which is likely limiting both what it's worth and how much freedom it gives you. Focusing on the constraint below is the highest-leverage place to start."
+    },
+    {
+      "minScore": 0,
+      "text": "At {score}/100, this is an early diagnostic, not a verdict — it flags where your business is most exposed right now so you can prioritize with intention. Start with the single biggest constraint identified below."
+    }
   ]
 }

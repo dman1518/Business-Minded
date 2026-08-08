@@ -50,4 +50,8 @@ export const container = {
   captureLead: () => new CaptureLead(leadRepository, assessmentResultRepository),
   generateReport: () => new GenerateReport(assessmentResultRepository, reportEngine),
   assessmentResultRepository,
+  // Exposed directly so API routes can build read-time-only Results
+  // page presentation (see ResultsPresenter) without a dedicated use
+  // case — it's a single, side-effect-free config read.
+  scoringConfigRepository,
 };
