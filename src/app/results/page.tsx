@@ -30,7 +30,6 @@ function ResultsContent() {
   const [result, setResult] = useState<AssessmentResultView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<ViewStep>("results");
-  const [intent, setIntent] = useState<"download" | "email">("download");
 
   useEffect(() => {
     if (!id) {
@@ -126,27 +125,16 @@ function ResultsContent() {
             </CardContent>
           </Card>
 
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button
-              onClick={() => {
-                setIntent("download");
-                setStep("leadCapture");
-              }}
-            >
-              Get My Full Report
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIntent("email");
-                setStep("leadCapture");
-              }}
-            >
-              Email My Report
-            </Button>
-            <Button variant="ghost" onClick={() => router.push("/assessment")}>
-              Retake Assessment
-            </Button>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button onClick={() => setStep("leadCapture")}>Get My Full Report</Button>
+              <Button variant="ghost" onClick={() => router.push("/assessment")}>
+                Retake Assessment
+              </Button>
+            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              Requires your name and email — no payment, and your results stay on this page either way.
+            </p>
           </div>
         </>
       )}
@@ -154,7 +142,6 @@ function ResultsContent() {
       {step === "leadCapture" && id && (
         <LeadCaptureForm
           assessmentResultId={id}
-          intent={intent}
           onSubmitted={handleLeadSubmitted}
           onCancel={() => setStep("results")}
         />
@@ -167,9 +154,7 @@ function ResultsContent() {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">
-              {intent === "email"
-                ? "We've saved your details. Your report has also been downloaded to this device — email delivery is coming in a future release."
-                : "Your report has been downloaded to this device."}
+              Your report has been downloaded to this device as a PDF.
             </p>
             <div className="flex gap-3">
               <Button variant="outline" onClick={downloadReport}>

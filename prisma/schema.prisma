@@ -34,13 +34,22 @@ model Lead {
   id                    String   @id @default(cuid())
   firstName             String
   email                 String
-  company               String
+  // Optional per the P1 lead-capture brief: only First name and Email
+  // are required to unlock the report.
+  company               String?
+  website               String?
   assessmentResultId    String   @unique
   assessmentResult      AssessmentResult @relation(fields: [assessmentResultId], references: [id])
-  // Consent record — required before a lead can be saved. See
-  // src/domain/policies/PrivacyPolicy.ts for the current policy version.
+  // Required report-delivery consent record — must be present before a
+  // lead can be saved. See src/domain/policies/PrivacyPolicy.ts for the
+  // current policy version.
   consentTimestamp      DateTime
   consentPolicyVersion  String
+  // Separate, optional marketing consent. Null means the respondent did
+  // not opt in; a timestamp records when they did. Distinct from the
+  // required report-delivery consent above — checking this box is never
+  // required to get the report.
+  marketingConsentAt    DateTime?
   reportGeneratedAt     DateTime?
   createdAt             DateTime @default(now())
 

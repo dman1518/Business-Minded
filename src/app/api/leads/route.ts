@@ -39,11 +39,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Honeypot: a real visitor never fills the hidden `website` field. A
+  // Honeypot: a real visitor never fills the hidden `hp` field. A
   // filled value almost certainly means a bot. Rather than tipping the
   // bot off with an error (which invites retries), we quietly report
   // success without saving anything.
-  if (parsed.data.website) {
+  if (parsed.data.hp) {
     logWarning("leads.honeypot_triggered", "Honeypot field was filled in — treating as bot.", { clientIp });
     return NextResponse.json({ id: "ignored", accepted: true }, { status: 201 });
   }
@@ -53,9 +53,11 @@ export async function POST(request: NextRequest) {
       firstName: parsed.data.firstName,
       email: parsed.data.email,
       company: parsed.data.company,
+      website: parsed.data.website,
       assessmentResultId: parsed.data.assessmentResultId,
       consentTimestamp: new Date(),
       consentPolicyVersion: CURRENT_PRIVACY_POLICY_VERSION,
+      marketingConsentAt: parsed.data.marketingConsent ? new Date() : undefined,
     });
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {
