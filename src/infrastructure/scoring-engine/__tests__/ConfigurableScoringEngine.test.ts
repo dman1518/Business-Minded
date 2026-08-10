@@ -303,21 +303,23 @@ describe("ConfigurableScoringEngine", () => {
       }
     });
 
-    it("midrange tie (every dimension Developing) discloses the tie rather than implying false precision", () => {
+    it("Developing-band tie (every dimension Developing) reports developing-tied, distinct from a Solid-band tie", () => {
       const questionSet = buildValidQuestionSet();
       const config = buildValidScoringConfig();
 
       const allMid: Answer[] = questionSet.questions.map((q) => ({ questionId: q.id, value: 3 }));
       const result = engine.score(allMid, questionSet, config);
 
-      expect(result.roles.tieState).toBe("midrange-tied");
+      const statuses = new Set(result.categoryScores.map((c) => c.status));
+      expect(statuses).toEqual(new Set(["Developing"]));
+      expect(result.roles.tieState).toBe("developing-tied");
       expect(result.roles.strength).toBeNull();
       expect(result.roles.constraint).toBeNull();
       expect(result.roles.opportunity).toBeNull();
-      expect(result.roles.tieMessage).toMatch(/balanced/i);
+      expect(result.roles.tieMessage).toMatch(/developing/i);
     });
 
-    it("tie at the Solid band also discloses the tie rather than fabricating a unique standout", () => {
+    it("Solid-band tie (every dimension Solid) reports solid-tied, distinct from a Developing-band tie", () => {
       const questionSet = buildValidQuestionSet();
       const config = buildValidScoringConfig();
 
@@ -327,10 +329,17 @@ describe("ConfigurableScoringEngine", () => {
 
       const statuses = new Set(result.categoryScores.map((c) => c.status));
       expect(statuses).toEqual(new Set(["Solid"]));
-      expect(result.roles.tieState).toBe("midrange-tied");
+      expect(result.roles.tieState).toBe("solid-tied");
       expect(result.roles.strength).toBeNull();
       expect(result.roles.constraint).toBeNull();
       expect(result.roles.opportunity).toBeNull();
+      expect(result.roles.tieMessage).toMatch(/solid/i);
+      // Developing-tied and solid-tied must be textually distinct —
+      // a business tied at 15/20 should never read the same as one
+      // tied at 10/20.
+      const developingAnswers: Answer[] = questionSet.questions.map((q) => ({ questionId: q.id, value: 3 }));
+      const developingResult = engine.score(developingAnswers, questionSet, config);
+      expect(result.roles.tieMessage).not.toBe(developingResult.roles.tieMessage);
     });
   });
 
@@ -428,7 +437,38 @@ describe("ConfigurableScoringEngine", () => {
       expect(result.topPriorities.length).toBeLessThanOrEqual(1);
     });
 
-    it("two eligible dimensions produce at most two distinct roles and at most two priorities", () => {
+    it('REQUIRED TEST: reproduces the confirmed production sparse scenario — 9 skipped, 1 Resilience question answered neutrally — and hedges instead of claiming a comparative "biggest constraint"', () => {
+      const questionSet = buildValidQuestionSet();
+      const config = buildValidScoringConfig();
+
+      // Only resilience_1 answered (neutral, value 3); every other
+      // question (including resilience_2) is skipped.
+      const answers: Answer[] = [{ questionId: "resilience_1", value: 3 }];
+      const result = engine.score(answers, questionSet, config);
+
+      expect(result.scoreDisplay.suppressed).toBe(true);
+      expect(result.scoreDisplay.scoreableDimensionCount).toBe(1);
+      expect(
+        result.categoryScores.filter((c) => c.status === "Insufficient data").length
+      ).toBe(4);
+      const resilience = result.categoryScores.find((c) => c.categoryId === "resilience")!;
+      expect(resilience.status).not.toBe("Insufficient data");
+      expect(resilience.reducedConfidence).toBe(true);
+
+      // Exactly one role filled (whichever band resilience landed in),
+      // and its description hedges rather than claiming a comparison.
+      const filled = [result.roles.strength, result.roles.constraint, result.roles.opportunity].filter(
+        (r) => r !== null
+      );
+      expect(filled.length).toBe(1);
+      expect(filled[0]!.categoryId).toBe("resilience");
+      expect(filled[0]!.description).toMatch(/preliminary/i);
+      expect(filled[0]!.description).not.toMatch(/lowest-scoring|strongest|next-biggest/i);
+
+      expect(result.topPriorities.length).toBe(1);
+    });
+
+    it("REQUIRED TEST: two eligible dimensions produce at most two distinct roles, at most two priorities, and full comparative language", () => {
       const questionSet = buildValidQuestionSet();
       const config = buildValidScoringConfig();
 
@@ -444,6 +484,46 @@ describe("ConfigurableScoringEngine", () => {
       expect(result.roles.strength?.categoryId).toBe("money");
       expect(result.roles.constraint?.categoryId).toBe("operations");
       expect(result.topPriorities.length).toBeLessThanOrEqual(2);
+
+      // With 2 eligible dimensions, comparative language IS legitimate
+      // (see MIN_ELIGIBLE_DIMENSIONS_FOR_COMPARISON) — unlike the
+      // 1-eligible-dimension case above, the description should NOT
+      // hedge as "preliminary".
+      expect(result.roles.strength!.description).toMatch(/strongest dimension/i);
+      expect(result.roles.constraint!.description).toMatch(/lowest-scoring dimension/i);
+      expect(result.roles.strength!.description).not.toMatch(/preliminary/i);
+      expect(result.roles.constraint!.description).not.toMatch(/preliminary/i);
+    });
+
+    it("REQUIRED TEST: low completeness with mixed partial and complete eligible dimensions still uses comparative language (threshold is dimension count, not per-dimension completeness)", () => {
+      const questionSet = buildValidQuestionSet();
+      const config = buildValidScoringConfig();
+
+      // 3 eligible dimensions: money fully answered, operations and
+      // growth each only partially answered (reducedConfidence) — 6 of
+      // 10 questions total, "Medium" completeness — but 3 distinct
+      // dimensions is still enough to legitimately compare.
+      const answers: Answer[] = [
+        { questionId: "money_1", value: 5 },
+        { questionId: "money_2", value: 5 },
+        { questionId: "operations_1", value: 1 },
+        { questionId: "growth_1", value: 3 },
+      ];
+      const result = engine.score(answers, questionSet, config);
+
+      expect(result.scoreDisplay.scoreableDimensionCount).toBe(3);
+      const operations = result.categoryScores.find((c) => c.categoryId === "operations")!;
+      const growth = result.categoryScores.find((c) => c.categoryId === "growth")!;
+      expect(operations.reducedConfidence).toBe(true);
+      expect(growth.reducedConfidence).toBe(true);
+
+      const filled = [result.roles.strength, result.roles.constraint, result.roles.opportunity].filter(
+        (r) => r !== null
+      );
+      expect(filled.length).toBeGreaterThan(0);
+      for (const role of filled) {
+        expect(role!.description).not.toMatch(/preliminary/i);
+      }
     });
 
     it("three eligible dimensions can populate all three roles distinctly", () => {
