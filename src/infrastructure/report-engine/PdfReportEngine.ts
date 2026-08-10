@@ -4,6 +4,7 @@ import { SavedAssessmentResult } from "@/domain/entities/AssessmentResult";
 import { CategoryScore, PriorityItem } from "@/domain/entities/Score";
 import { Insight } from "@/domain/value-objects/Insight";
 import { SavedLead } from "@/domain/entities/Lead";
+import { insightRoleLabel } from "@/domain/policies/ComparativeLanguage";
 
 const PAGE_WIDTH = 612; // US Letter, points
 const PAGE_HEIGHT = 792;
@@ -248,11 +249,38 @@ export class PdfReportEngine implements ReportEngine {
       );
       y -= 10;
     } else {
-      y = this.drawInsightBlock(page, bold, regular, y, "What's Working", roles.strength);
+      // Labels are derived from the same scoreableDimensionCount the
+      // web page uses (ComparativeLanguage.insightRoleLabel) — never
+      // hardcoded — so the PDF can never call a single-dimension read
+      // "Biggest Constraint" when the web page correctly hedges it as
+      // a "Preliminary Focus Area".
+      const eligibleDimensionCount = result.scoreDisplay.scoreableDimensionCount;
+      y = this.drawInsightBlock(
+        page,
+        bold,
+        regular,
+        y,
+        insightRoleLabel("strength", eligibleDimensionCount),
+        roles.strength
+      );
       y -= 10;
-      y = this.drawInsightBlock(page, bold, regular, y, "Biggest Constraint", roles.constraint);
+      y = this.drawInsightBlock(
+        page,
+        bold,
+        regular,
+        y,
+        insightRoleLabel("constraint", eligibleDimensionCount),
+        roles.constraint
+      );
       y -= 10;
-      y = this.drawInsightBlock(page, bold, regular, y, "Biggest Opportunity", roles.opportunity);
+      y = this.drawInsightBlock(
+        page,
+        bold,
+        regular,
+        y,
+        insightRoleLabel("opportunity", eligibleDimensionCount),
+        roles.opportunity
+      );
       y -= 10;
     }
 
