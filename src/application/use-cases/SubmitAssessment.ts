@@ -23,10 +23,11 @@ export class SubmitAssessment {
   ) {}
 
   async execute(answers: Answer[], segmentation?: Segmentation): Promise<SavedAssessmentResult> {
-    if (!answers.length) {
-      throw new Error("At least one answer is required to score an assessment.");
-    }
-
+    // No early-exit guard here for the empty-answers case: it falls
+    // through to the Scoring Engine, which throws InsufficientDataError
+    // (a distinct, intentional error the API route maps to 422) rather
+    // than this use case throwing a generic Error the route would have
+    // to pattern-match on a message string.
     const [questionSet, config] = await Promise.all([
       this.questionRepository.getQuestionSet(),
       this.scoringConfigRepository.getConfig(),

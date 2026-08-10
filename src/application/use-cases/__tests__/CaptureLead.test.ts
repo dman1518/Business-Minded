@@ -8,10 +8,23 @@ import { AssessmentScoreResult } from "@/domain/entities/Score";
 
 function fakeAssessmentScoreResult(): AssessmentScoreResult {
   return {
-    overallScore: 70,
     categoryScores: [],
-    biggestOpportunity: { categoryId: "money", categoryName: "Money", headline: "h", description: "d" },
-    biggestConstraint: { categoryId: "money", categoryName: "Money", headline: "h", description: "d" },
+    scoreDisplay: {
+      value: 70,
+      suppressed: false,
+      answeredQuestionCount: 10,
+      totalQuestionCount: 10,
+      scoreableDimensionCount: 5,
+      totalDimensionCount: 5,
+    },
+    scoreInterpretation: "Solid foundation.",
+    roles: {
+      strength: { categoryId: "money", categoryName: "Money", headline: "h", description: "d" },
+      constraint: { categoryId: "operations", categoryName: "Operations", headline: "h", description: "d" },
+      opportunity: { categoryId: "growth", categoryName: "Growth", headline: "h", description: "d" },
+      tieState: "none",
+      tieMessage: null,
+    },
     topPriorities: [],
     confidenceLevel: "High",
   };
@@ -29,7 +42,7 @@ function buildFakeAssessmentResultRepository(
 }
 
 function buildSpyingLeadRepository(): LeadRepository & { saveCallCount: number; lastLead?: Lead } {
-  const state: { saveCallCount: number; lastLead?: Lead } = { saveCallCount: 0 };
+  const state: { saveCallCount: number; lastLead?: Lead; saved?: SavedLead } = { saveCallCount: 0 };
   return {
     get saveCallCount() {
       return state.saveCallCount;
@@ -40,7 +53,11 @@ function buildSpyingLeadRepository(): LeadRepository & { saveCallCount: number; 
     async save(lead: Lead): Promise<SavedLead> {
       state.saveCallCount += 1;
       state.lastLead = lead;
-      return { ...lead, id: "lead-1", createdAt: new Date("2026-01-01") };
+      state.saved = { ...lead, id: "lead-1", createdAt: new Date("2026-01-01") };
+      return state.saved;
+    },
+    async findByAssessmentResultId(assessmentResultId: string): Promise<SavedLead | null> {
+      return state.saved && state.saved.assessmentResultId === assessmentResultId ? state.saved : null;
     },
   };
 }
@@ -83,4 +100,45 @@ describe("CaptureLead", () => {
     );
     expect(leadRepository.saveCallCount).toBe(0);
   });
+
+  it("REQUIRED TEST: submitting a lead twice for the same assessment result is idempotent — no duplicate lead", async () => {
+    // A repository fake that mirrors the real Prisma adapter's
+    // idempotent-on-unique-constraint behavior: a second save() for an
+    // assessmentResultId that already has a lead returns the EXISTING
+    // lead rather than creating a second one.
+    const bySavedAssessmentId = new Map<string, SavedLead>();
+    let createCount = 0;
+    const idempotentLeadRepository: LeadRepository = {
+      async save(lead: Lead): Promise<SavedLead> {
+        const existing = bySavedAssessmentId.get(lead.assessmentResultId);
+        if (existing) return existing;
+        createCount += 1;
+        const saved: SavedLead = { ...lead, id: `lead-${createCount}`, createdAt: new Date("2026-01-01") };
+        bySavedAssessmentId.set(lead.assessmentResultId, saved);
+        return saved;
+      },
+      async findByAssessmentResultId(assessmentResultId: string): Promise<SavedLead | null> {
+        return bySavedAssessmentId.get(assessmentResultId) ?? null;
+      },
+    };
+
+    const assessmentResultRepository = buildFakeAssessmentResultRepository(fakeAssessmentScoreResultAsSaved());
+    const useCase = new CaptureLead(idempotentLeadRepository, assessmentResultRepository);
+
+    const first = await useCase.execute(buildLead());
+    const second = await useCase.execute(buildLead({ email: "different-email@example.com" }));
+
+    expect(createCount).toBe(1);
+    expect(second.id).toBe(first.id);
+    expect(second.email).toBe(first.email); // the original record wins, not the retry's payload
+  });
 });
+
+function fakeAssessmentScoreResultAsSaved(): SavedAssessmentResult {
+  return {
+    ...fakeAssessmentScoreResult(),
+    id: "assessment-1",
+    rawAnswers: {},
+    createdAt: new Date("2026-01-01"),
+  };
+}
