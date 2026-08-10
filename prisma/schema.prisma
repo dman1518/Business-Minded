@@ -15,20 +15,47 @@ datasource db {
 }
 
 model AssessmentResult {
-  id                  String   @id @default(cuid())
-  overallScore        Int
-  categoryScores      Json // CategoryScore[]
-  biggestOpportunity  Json // Insight
-  biggestConstraint   Json // Insight
-  topPriorities       Json // string[]
-  confidenceLevel     String
-  rawAnswers          Json // { [questionId]: answerValue } — for auditing/debugging scoring
+  // cuid2 (not classic cuid()): no embedded timestamp/counter, so this
+  // public identifier — baked into shareable /results?id=... links —
+  // is not sequentially guessable or enumerable. See prisma/schema.prisma
+  // migration history: this changes only client-side ID generation for
+  // NEW rows, not the column type, so existing classic-cuid ids remain
+  // valid and readable.
+  id                   String   @id @default(cuid(2))
+  // Canonical, versioned scoring output -- the single source of truth
+  // consumed by both the web results page and PDF generation. Shape:
+  // AssessmentScoreResult (see src/domain/entities/Score.ts).
+  // Nullable only to support rows written before this column existed;
+  // every new submission always populates it. Rows with a null
+  // resultModel are recomputed on read from rawAnswers using the
+  // CURRENT scoring engine + config (see
+  // PrismaAssessmentResultRepository.findById), so a rules-version
+  // change transparently repairs previously-persisted narrative text
+  // without a destructive backfill migration.
+  resultModel          Json?
+  // Identifies which scoring rules produced resultModel, e.g. "v2".
+  // See CURRENT_SCORING_VERSION in src/domain/policies/ScoringVersion.ts.
+  scoringVersion       String?
+  // --- Legacy columns (scoring engine v1) ---
+  // Superseded by resultModel above. Left in place, nullable, as a
+  // read-only audit trail for rows written before this migration --
+  // never written to by new code. Safe to drop in a future migration
+  // once every row has a non-null resultModel (which happens
+  // automatically over time via the read-time backfill described
+  // above, or via an explicit backfill script).
+  overallScore         Int?
+  categoryScores       Json? // legacy CategoryScore[]
+  biggestOpportunity   Json? // legacy Insight
+  biggestConstraint    Json? // legacy Insight
+  topPriorities        Json? // legacy string[]
+  confidenceLevel      String?
+  rawAnswers           Json // { [questionId]: answerValue } — for auditing/debugging scoring, and for read-time recomputation
   // Unscored segmentation info from the intro screen (industry, company
   // size, revenue range). Never used in scoring — internal lead
   // qualification only. Null when the respondent skipped the intro
   // screen entirely. See src/domain/value-objects/Segmentation.ts.
-  segmentation        Json?
-  createdAt           DateTime @default(now())
+  segmentation         Json?
+  createdAt            DateTime @default(now())
 
   lead Lead?
 
@@ -36,7 +63,8 @@ model AssessmentResult {
 }
 
 model Lead {
-  id                    String   @id @default(cuid())
+  // cuid2 — see AssessmentResult.id comment above.
+  id                    String   @id @default(cuid(2))
   firstName             String
   email                 String
   // Optional per the P1 lead-capture brief: only First name and Email
@@ -50,7 +78,13 @@ model Lead {
   // current policy version.
   consentTimestamp      DateTime
   consentPolicyVersion  String
-  // Separate, optional marketing consent. Null means the respondent did
+  // Optional, separate consent to be personally followed up with about
+  // THIS assessment's results — distinct from both the required
+  // report-delivery consent above and the general marketing consent
+  // below. Null means not granted; a timestamp records when it was.
+  resultsFollowUpConsentAt DateTime?
+  // Separate, optional marketing consent (general tips/updates,
+  // unrelated to this specific result). Null means the respondent did
   // not opt in; a timestamp records when they did. Distinct from the
   // required report-delivery consent above — checking this box is never
   // required to get the report.
