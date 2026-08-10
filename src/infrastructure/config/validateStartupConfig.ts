@@ -1,14 +1,17 @@
 import { QuestionSet } from "@/domain/entities/Question";
-import { ScoringConfig, CategoryInsightConfig } from "@/domain/repositories/ScoringConfigRepository";
+import { ScoringConfig, BandCopy } from "@/domain/repositories/ScoringConfigRepository";
 import { REQUIRED_CATEGORY_IDS, REQUIRED_CATEGORY_WEIGHT } from "@/domain/policies/RequiredCategories";
 
-const REQUIRED_INSIGHT_FIELDS: (keyof CategoryInsightConfig)[] = [
-  "opportunityHeadline",
-  "opportunityDescription",
-  "constraintHeadline",
-  "constraintDescription",
-  "strengthHeadline",
-  "strengthDescription",
+const REQUIRED_BANDS: (keyof import("@/domain/repositories/ScoringConfigRepository").CategoryInsightConfig)[] = [
+  "Constraint",
+  "Developing",
+  "Solid",
+  "Strength",
+];
+
+const REQUIRED_BAND_COPY_FIELDS: (keyof BandCopy)[] = [
+  "headline",
+  "description",
   "priorityAction",
   "priorityWhyItMatters",
   "priorityTimeframe",
@@ -123,10 +126,17 @@ function validateInsights(scoringConfig: ScoringConfig, errors: string[]): void 
       errors.push(`Missing categoryInsights entry for "${id}".`);
       continue;
     }
-    for (const field of REQUIRED_INSIGHT_FIELDS) {
-      const value = insight[field];
-      if (typeof value !== "string" || value.trim().length === 0) {
-        errors.push(`Missing or empty "${field}" text for category "${id}".`);
+    for (const band of REQUIRED_BANDS) {
+      const bandCopy = insight[band];
+      if (!bandCopy) {
+        errors.push(`Missing categoryInsights."${id}"."${band}" band copy.`);
+        continue;
+      }
+      for (const field of REQUIRED_BAND_COPY_FIELDS) {
+        const value = bandCopy[field];
+        if (typeof value !== "string" || value.trim().length === 0) {
+          errors.push(`Missing or empty "${field}" text for category "${id}" band "${band}".`);
+        }
       }
     }
   }
@@ -177,7 +187,7 @@ function validateCategoryStatusThresholds(scoringConfig: ScoringConfig, errors: 
     return;
   }
 
-  const validStatuses = new Set(["Strength", "Developing", "Constraint"]);
+  const validStatuses = new Set(["Strength", "Solid", "Developing", "Constraint"]);
   let hasZeroFloor = false;
 
   for (const threshold of thresholds) {
