@@ -12,6 +12,7 @@ import { REQUIRED_CATEGORY_IDS, REQUIRED_CATEGORY_WEIGHT } from "@/domain/polici
 import { MIN_SCOREABLE_DIMENSIONS_FOR_HEADLINE } from "@/domain/policies/PerformanceBands";
 import { InsufficientDataError } from "@/domain/policies/InsufficientDataError";
 import { selectResultRoles } from "@/domain/scoring/selectResultRoles";
+import { buildScoreInterpretation } from "@/domain/scoring/buildScoreInterpretation";
 
 /**
  * Adapter: computes an AssessmentScoreResult from raw answers.
@@ -105,13 +106,14 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     });
 
     const scoreDisplay = this.buildScoreDisplay(categoryScores, answers.length, questionSet.questions.length);
-    const scoreInterpretation = scoreDisplay.suppressed
-      ? "We don't have enough answers yet to calculate a reliable Business Minded Score. Answer more questions — or retake the assessment — to see your full result."
-      : this.buildScoreInterpretation(scoreDisplay.value as number, config);
-
     const { roles, topPriorities } = selectResultRoles(categoryScores, config);
-
     const confidenceLevel = this.deriveConfidence(answers, questionSet, config);
+
+    // scoreInterpretation is derived from the SAME canonical roles /
+    // scoreDisplay / confidenceLevel computed above — never from the
+    // raw score alone — so it can never contradict the tie state or
+    // role selection shown beneath it. See buildScoreInterpretation.
+    const scoreInterpretation = buildScoreInterpretation(scoreDisplay, roles, confidenceLevel, config);
 
     return {
       categoryScores,
@@ -182,17 +184,6 @@ export class ConfigurableScoringEngine implements ScoringEngine {
       scoreableDimensionCount: scoreable.length,
       totalDimensionCount: categoryScores.length,
     };
-  }
-
-  private buildScoreInterpretation(overallScore: number, config: ScoringConfig): string {
-    const sorted = [...config.scoreInterpretationThresholds].sort((a, b) => b.minScore - a.minScore);
-    const match = sorted.find((t) => overallScore >= t.minScore);
-
-    if (!match) {
-      throw new Error("No scoreInterpretationThresholds entry matched — invalid config.");
-    }
-
-    return match.text.replace(/\{score\}/g, String(overallScore));
   }
 
   /**

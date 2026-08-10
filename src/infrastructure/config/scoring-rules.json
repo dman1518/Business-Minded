@@ -162,24 +162,45 @@
     }
   },
   "confidenceThresholds": [
-    { "minCompleteness": 0.9, "level": "High" },
-    { "minCompleteness": 0.6, "level": "Medium" },
-    { "minCompleteness": 0, "level": "Low" }
+    {
+      "minCompleteness": 0.9,
+      "level": "High"
+    },
+    {
+      "minCompleteness": 0.6,
+      "level": "Medium"
+    },
+    {
+      "minCompleteness": 0,
+      "level": "Low"
+    }
   ],
   "categoryStatusThresholds": [
-    { "minScore": 18, "status": "Strength" },
-    { "minScore": 14, "status": "Solid" },
-    { "minScore": 8, "status": "Developing" },
-    { "minScore": 0, "status": "Constraint" }
+    {
+      "minScore": 18,
+      "status": "Strength"
+    },
+    {
+      "minScore": 14,
+      "status": "Solid"
+    },
+    {
+      "minScore": 8,
+      "status": "Developing"
+    },
+    {
+      "minScore": 0,
+      "status": "Constraint"
+    }
   ],
   "scoreInterpretationThresholds": [
     {
       "minScore": 80,
-      "text": "At {score}/100, your business is performing strongly across most of what matters for its value and your freedom. This is a strong foundation to build on, and this report highlights the single dimension with the most room to grow."
+      "text": "At {score}/100, your business is performing strongly across most of what matters for its value and your freedom. This is a strong foundation to build on."
     },
     {
       "minScore": 60,
-      "text": "At {score}/100, your business has a solid foundation with a few clear areas holding it back. Addressing the constraint below is likely to have an outsized impact on both business value and your freedom."
+      "text": "At {score}/100, your business has a solid foundation with a few clear areas holding it back."
     },
     {
       "minScore": 40,
@@ -187,11 +208,11 @@
     },
     {
       "minScore": 20,
-      "text": "At {score}/100, your business is carrying real risk across multiple dimensions, which is likely limiting both what it's worth and how much freedom it gives you. Focusing on the constraint below is the highest-leverage place to start."
+      "text": "At {score}/100, your business is carrying real risk across multiple dimensions, which is likely limiting both what it's worth and how much freedom it gives you."
     },
     {
       "minScore": 0,
-      "text": "At {score}/100, this is an early diagnostic, not a verdict — it flags where your business is most exposed right now so you can prioritize with intention. Start with the single biggest constraint identified below."
+      "text": "At {score}/100, this is an early diagnostic, not a verdict — it flags where your business is most exposed right now so you can prioritize with intention."
     }
   ]
 }
