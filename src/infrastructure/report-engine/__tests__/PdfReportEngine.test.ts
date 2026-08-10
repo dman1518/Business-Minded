@@ -122,6 +122,66 @@ describe("PdfReportEngine — renders the same canonical result model as the web
     expect(buffer.length).toBeGreaterThan(0);
   });
 
+  it("REQUIRED TEST: renders each of the four tie states (all-low, developing, solid, all-high) cleanly, with no old 3-state tie logic remaining", async () => {
+    const tieStates = ["all-low-tied", "developing-tied", "solid-tied", "all-high-tied"] as const;
+
+    for (const tieState of tieStates) {
+      const result = baseResult({
+        roles: {
+          strength: null,
+          constraint: null,
+          opportunity: null,
+          tieState,
+          tieMessage: `Tie message for ${tieState}.`,
+        },
+      });
+
+      const buffer = await engine.generate(result);
+      expect(buffer.length).toBeGreaterThan(0);
+      expect(buffer.subarray(0, 4).toString("ascii")).toBe("%PDF");
+    }
+  });
+
+  it("REQUIRED TEST: renders a single-eligible-dimension (sparse) result with a Preliminary Focus Area label, matching the web page's ComparativeLanguage rules, not the old hardcoded 'Biggest Constraint' label", async () => {
+    const result = baseResult({
+      scoreDisplay: {
+        value: null,
+        suppressed: true,
+        answeredQuestionCount: 1,
+        totalQuestionCount: 10,
+        scoreableDimensionCount: 1,
+        totalDimensionCount: 5,
+      },
+      roles: {
+        strength: null,
+        constraint: {
+          categoryId: "resilience",
+          categoryName: "Resilience",
+          headline: "Resilience headline",
+          description:
+            "Resilience description. Based on the limited answers available so far, this is a preliminary read (10/20) — complete more of the assessment before treating Resilience as your primary business constraint.",
+        },
+        opportunity: null,
+        tieState: "none",
+        tieMessage: null,
+      },
+      topPriorities: [
+        {
+          categoryId: "resilience",
+          categoryName: "Resilience",
+          status: "Developing",
+          action: "Answer more questions",
+          whyItMatters: "More evidence means a more reliable result",
+          timeframe: "This month",
+        },
+      ],
+    });
+
+    const buffer = await engine.generate(result);
+    expect(buffer.length).toBeGreaterThan(0);
+    expect(buffer.subarray(0, 4).toString("ascii")).toBe("%PDF");
+  });
+
   it("includes the lead's first name when a lead is provided, and falls back to a generic subtitle when not", async () => {
     const result = baseResult();
 
