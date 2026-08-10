@@ -99,7 +99,7 @@ function ResultsContent() {
       {step === "results" && (
         <>
           <div className="flex flex-col items-center gap-4">
-            <OverallScore score={result.overallScore} />
+            <OverallScore scoreDisplay={result.scoreDisplay} />
             <ConfidenceBadge level={result.confidenceLevel} />
           </div>
 
@@ -121,17 +121,39 @@ function ResultsContent() {
             </CardContent>
           </Card>
 
-          {/* 2-4. What's working / Biggest constraint / Biggest opportunity */}
-          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-            <InsightCard label="What's Working" insight={result.whatsWorking} tone="positive" />
-            <InsightCard label="Biggest Constraint" insight={result.biggestConstraint} tone="negative" />
-          </div>
-          <InsightCard label="Biggest Opportunity" insight={result.biggestOpportunity} tone="positive" />
+          {/* 2-4. What's working / Biggest constraint / Biggest opportunity, or
+              a balanced-profile tie explanation when every scoreable dimension
+              tied — showing an arbitrarily-picked "biggest" would be false
+              precision in that case. */}
+          {result.roles.tieState !== "none" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {result.roles.tieState === "all-high-tied"
+                    ? "A consistently strong profile"
+                    : result.roles.tieState === "all-low-tied"
+                      ? "Broad, foundational risk"
+                      : "A balanced profile"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="min-w-0 break-words text-sm text-muted-foreground">{result.roles.tieMessage}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                <InsightCard label="What's Working" insight={result.roles.strength} tone="positive" />
+                <InsightCard label="Biggest Constraint" insight={result.roles.constraint} tone="negative" />
+              </div>
+              <InsightCard label="Biggest Opportunity" insight={result.roles.opportunity} tone="positive" />
+            </>
+          )}
 
-          {/* 5. Top three priorities */}
+          {/* 5. Top priorities */}
           <Card>
             <CardHeader>
-              <CardTitle>Top Three Priorities</CardTitle>
+              <CardTitle>Top Priorities</CardTitle>
             </CardHeader>
             <CardContent>
               <PriorityList priorities={result.topPriorities} />

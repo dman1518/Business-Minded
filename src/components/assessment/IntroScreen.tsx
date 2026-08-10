@@ -33,7 +33,8 @@ export function IntroScreen({ segmentation, onChange, onContinue }: IntroScreenP
         <CardTitle className="text-xl sm:text-2xl">Before we begin</CardTitle>
         <CardDescription>
           10 quick questions, about 2 minutes. These three are optional and won&apos;t affect your
-          score — they just help us tailor recommendations by business type.
+          score or change the recommendations you see — they just help us understand who&apos;s using
+          this tool.
         </CardDescription>
       </CardHeader>
       <CardContent>
