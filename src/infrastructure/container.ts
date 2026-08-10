@@ -33,9 +33,13 @@ validateStartupConfig(questionsData as unknown as QuestionSet, scoringRulesData 
 
 const questionRepository = new JsonQuestionRepository();
 const scoringConfigRepository = new JsonScoringConfigRepository();
-const assessmentResultRepository = new PrismaAssessmentResultRepository();
-const leadRepository = new PrismaLeadRepository();
 const scoringEngine = new ConfigurableScoringEngine();
+const assessmentResultRepository = new PrismaAssessmentResultRepository(
+  questionRepository,
+  scoringConfigRepository,
+  scoringEngine
+);
+const leadRepository = new PrismaLeadRepository();
 const reportEngine = new PdfReportEngine();
 
 export const container = {
@@ -50,8 +54,5 @@ export const container = {
   captureLead: () => new CaptureLead(leadRepository, assessmentResultRepository),
   generateReport: () => new GenerateReport(assessmentResultRepository, reportEngine),
   assessmentResultRepository,
-  // Exposed directly so API routes can build read-time-only Results
-  // page presentation (see ResultsPresenter) without a dedicated use
-  // case — it's a single, side-effect-free config read.
   scoringConfigRepository,
 };

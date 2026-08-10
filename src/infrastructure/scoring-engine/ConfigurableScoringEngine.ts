@@ -5,52 +5,54 @@ import {
   CategoryScore,
   CategoryStatus,
   ConfidenceLevel,
-  PriorityItem,
 } from "@/domain/entities/Score";
-import { Insight } from "@/domain/value-objects/Insight";
 import { ScoringConfig } from "@/domain/repositories/ScoringConfigRepository";
 import { ScoringEngine } from "@/domain/repositories/ScoringEngine";
 import { REQUIRED_CATEGORY_IDS, REQUIRED_CATEGORY_WEIGHT } from "@/domain/policies/RequiredCategories";
+import { MIN_SCOREABLE_DIMENSIONS_FOR_HEADLINE } from "@/domain/policies/PerformanceBands";
+import { InsufficientDataError } from "@/domain/policies/InsufficientDataError";
+import { selectResultRoles } from "@/domain/scoring/selectResultRoles";
 
 /**
  * Adapter: computes an AssessmentScoreResult from raw answers.
  *
- * Every business rule below (category weights, insight copy, status
- * thresholds, which category becomes the "constraint" vs. the
- * "opportunity", confidence thresholds) is read from `ScoringConfig`
- * — nothing is hardcoded here. Configuration is validated at startup
- * (see validateStartupConfig), so this class trusts it and does not
- * silently substitute fallback values (zero weights, equal weights,
- * empty copy) for anything invalid — a broken config is expected to
- * have already failed loudly before this code ever runs.
+ * This is the single canonical scoring + result-selection module —
+ * web results, PDF generation, and any future surface all consume its
+ * output directly rather than re-deriving narrative sections
+ * themselves (see AssessmentResultView and PdfReportEngine).
  *
  * Rules encoded (documented as assumptions in the README):
  *  - The framework is locked to exactly five equally-weighted
  *    categories (money, operations, growth, freedom, resilience —
  *    see RequiredCategories). categoryScores always has exactly five
  *    entries, in that fixed order, regardless of which questions were
- *    answered. Freedom is one of the five; there is no separate
- *    Freedom or Owner Dependence score.
- *  - Each category's score is the mean of its answered questions,
- *    normalized from [scaleMin, scaleMax] to [0, 100], then reduced to
- *    its fixed 20-point share (normalized * REQUIRED_CATEGORY_WEIGHT,
- *    rounded). The five category scores therefore always sum to
- *    exactly the overall score — no separate re-rounding step.
- *  - A category with zero answered questions scores 0 and is marked
- *    "Insufficient data" rather than being scored/statused via the
- *    normal thresholds — that status means "no evidence", not "this
- *    category was measured and found weak". Such categories are
- *    excluded from being chosen as the constraint, opportunity, or a
- *    top priority.
- *  - "Biggest Constraint" = lowest-scoring answered category.
- *  - "Biggest Opportunity" = next-lowest-scoring answered category.
- *  - "Top Priorities" = the `topPriorityCount` lowest-scoring answered
- *    categories' configured action/why/timeframe copy.
- *  - "Confidence Level" reflects EVIDENCE QUALITY, not business
- *    quality: it is the fraction of the assessment's questions that
- *    were actually answered (vs. skipped), compared against
- *    `config.confidenceThresholds`. It has nothing to do with how
- *    similar or different the category scores turn out to be.
+ *    answered.
+ *  - Each category's score is the mean of its ANSWERED questions
+ *    (never padded with assumed values for skipped ones), normalized
+ *    from [scaleMin, scaleMax] to [0, 100], then reduced to its fixed
+ *    20-point share. A category with zero answered questions scores 0
+ *    and is marked "Insufficient data" — that status means "no
+ *    evidence", not "measured and found weak". A category with only
+ *    SOME of its questions answered is still scored from what it has,
+ *    but flagged `reducedConfidence` so the UI doesn't imply the same
+ *    confidence as a fully-answered category.
+ *  - The headline /100 score is suppressed (scoreDisplay.suppressed)
+ *    whenever fewer than MIN_SCOREABLE_DIMENSIONS_FOR_HEADLINE of the
+ *    five dimensions have any evidence — this is what stops "1 real
+ *    answer + 9 skips" from rendering as a misleading low score built
+ *    from phantom zeros. A genuinely complete assessment always shows
+ *    a score with the exact prior math (all-low -> 0, all-high -> 100).
+ *  - "What's Working" / "Biggest Constraint" / "Biggest Opportunity"
+ *    and "Top Priorities" are produced by selectResultRoles, which
+ *    enforces: a dimension occupies at most one of the three named
+ *    roles, insufficient-data dimensions are never selected, a
+ *    Strength dimension is never framed as a constraint, a Constraint
+ *    dimension is never framed as a strength, priority count never
+ *    exceeds the number of scoreable dimensions, and an explicit tie
+ *    state is used instead of arbitrarily picking the first item when
+ *    every scoreable dimension ties on score.
+ *  - "Confidence Level" reflects EVIDENCE QUALITY (question
+ *    completeness), never business quality or score similarity.
  */
 export class ConfigurableScoringEngine implements ScoringEngine {
   score(
@@ -58,6 +60,10 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     questionSet: QuestionSet,
     config: ScoringConfig
   ): AssessmentScoreResult {
+    if (answers.length === 0) {
+      throw new InsufficientDataError();
+    }
+
     const answerByQuestionId = new Map(answers.map((a) => [a.questionId, a.value]));
     const questionsByCategory = this.groupQuestionsByCategory(questionSet);
     const categoryNameById = new Map(questionSet.categories.map((c) => [c.id, c.name]));
@@ -65,12 +71,22 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     const categoryScores: CategoryScore[] = REQUIRED_CATEGORY_IDS.map((categoryId) => {
       const categoryName = categoryNameById.get(categoryId) ?? categoryId;
       const questions = questionsByCategory.get(categoryId) ?? [];
+      const applicableCount = questions.length;
       const values = questions
         .map((q) => answerByQuestionId.get(q.id))
         .filter((v): v is number => typeof v === "number");
+      const answeredCount = values.length;
 
-      if (values.length === 0) {
-        return { categoryId, categoryName, score: 0, status: "Insufficient data" };
+      if (answeredCount === 0) {
+        return {
+          categoryId,
+          categoryName,
+          score: 0,
+          status: "Insufficient data",
+          answeredCount,
+          applicableCount,
+          reducedConfidence: false,
+        };
       }
 
       const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
@@ -82,43 +98,26 @@ export class ConfigurableScoringEngine implements ScoringEngine {
         categoryName,
         score,
         status: this.deriveCategoryStatus(score, config),
+        answeredCount,
+        applicableCount,
+        reducedConfidence: answeredCount < applicableCount,
       };
     });
 
-    const answeredPool = categoryScores.filter((c) => c.status !== "Insufficient data");
-    if (answeredPool.length === 0) {
-      throw new Error("Cannot score an assessment with no answered questions.");
-    }
+    const scoreDisplay = this.buildScoreDisplay(categoryScores, answers.length, questionSet.questions.length);
+    const scoreInterpretation = scoreDisplay.suppressed
+      ? "We don't have enough answers yet to calculate a reliable Business Minded Score. Answer more questions — or retake the assessment — to see your full result."
+      : this.buildScoreInterpretation(scoreDisplay.value as number, config);
 
-    const overallScore = categoryScores.reduce((sum, c) => sum + c.score, 0);
-
-    const ranked = [...answeredPool].sort((a, b) => a.score - b.score);
-    const constraintCategory = ranked[0];
-    const opportunityCategory = ranked[1] ?? ranked[0];
-
-    const biggestConstraint = this.buildInsight(constraintCategory, config, "constraint");
-    const biggestOpportunity = this.buildInsight(opportunityCategory, config, "opportunity");
-
-    const topPriorities: PriorityItem[] = ranked
-      .slice(0, Math.max(1, config.topPriorityCount))
-      .map((c) => {
-        const copy = config.categoryInsights[c.categoryId];
-        return {
-          categoryId: c.categoryId,
-          categoryName: c.categoryName,
-          action: copy.priorityAction,
-          whyItMatters: copy.priorityWhyItMatters,
-          timeframe: copy.priorityTimeframe,
-        };
-      });
+    const { roles, topPriorities } = selectResultRoles(categoryScores, config);
 
     const confidenceLevel = this.deriveConfidence(answers, questionSet, config);
 
     return {
-      overallScore,
       categoryScores,
-      biggestOpportunity,
-      biggestConstraint,
+      scoreDisplay,
+      scoreInterpretation,
+      roles,
       topPriorities,
       confidenceLevel,
     };
@@ -153,38 +152,47 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     return match.status;
   }
 
-  private buildInsight(
-    categoryScore: CategoryScore,
-    config: ScoringConfig,
-    kind: "opportunity" | "constraint"
-  ): Insight {
-    const copy = config.categoryInsights[categoryScore.categoryId];
-    if (!copy) {
-      // Should be unreachable — validateStartupConfig guarantees every
-      // required category has insight copy before the app can boot.
-      throw new Error(
-        `No categoryInsights configured for category "${categoryScore.categoryId}".`
-      );
-    }
-
-    const headline = kind === "opportunity" ? copy.opportunityHeadline : copy.constraintHeadline;
-    const baseDescription =
-      kind === "opportunity" ? copy.opportunityDescription : copy.constraintDescription;
-
-    // Cite the actual assessment signal in plain language, in addition
-    // to the configured narrative copy, so the insight is evidence-
-    // backed rather than generic template text.
-    const evidenceSentence =
-      kind === "constraint"
-        ? ` This was your lowest-scoring dimension, at ${categoryScore.score}/20.`
-        : ` This was your next-biggest area for improvement, at ${categoryScore.score}/20.`;
+  /**
+   * The headline score is only ever computed from dimensions with
+   * evidence (answeredCount > 0) — an "Insufficient data" dimension
+   * contributes nothing to the sum, not a phantom zero. When fewer
+   * than MIN_SCOREABLE_DIMENSIONS_FOR_HEADLINE dimensions have
+   * evidence, the score is suppressed entirely rather than showing a
+   * partial sum that could be misread as a full /100 verdict.
+   *
+   * For a genuinely complete assessment (5 of 5 dimensions scoreable)
+   * this sums to exactly the same total as summing all five
+   * categoryScores directly, since every category already has
+   * evidence — all-low remains exactly 0 and all-high remains exactly
+   * 100.
+   */
+  private buildScoreDisplay(
+    categoryScores: CategoryScore[],
+    answeredQuestionCount: number,
+    totalQuestionCount: number
+  ) {
+    const scoreable = categoryScores.filter((c) => c.status !== "Insufficient data");
+    const suppressed = scoreable.length < MIN_SCOREABLE_DIMENSIONS_FOR_HEADLINE;
 
     return {
-      categoryId: categoryScore.categoryId,
-      categoryName: categoryScore.categoryName,
-      headline,
-      description: `${baseDescription}${evidenceSentence}`,
+      value: suppressed ? null : scoreable.reduce((sum, c) => sum + c.score, 0),
+      suppressed,
+      answeredQuestionCount,
+      totalQuestionCount,
+      scoreableDimensionCount: scoreable.length,
+      totalDimensionCount: categoryScores.length,
     };
+  }
+
+  private buildScoreInterpretation(overallScore: number, config: ScoringConfig): string {
+    const sorted = [...config.scoreInterpretationThresholds].sort((a, b) => b.minScore - a.minScore);
+    const match = sorted.find((t) => overallScore >= t.minScore);
+
+    if (!match) {
+      throw new Error("No scoreInterpretationThresholds entry matched — invalid config.");
+    }
+
+    return match.text.replace(/\{score\}/g, String(overallScore));
   }
 
   /**
@@ -221,8 +229,6 @@ export class ConfigurableScoringEngine implements ScoringEngine {
     const match = sortedThresholds.find((t) => completeness >= t.minCompleteness);
 
     if (!match) {
-      // Unreachable if config was validated (a minCompleteness: 0 entry
-      // is required), but fail loudly rather than guess if it happens.
       throw new Error("No confidence threshold matched — invalid confidenceThresholds config.");
     }
 

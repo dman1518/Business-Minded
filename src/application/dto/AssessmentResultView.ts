@@ -1,6 +1,4 @@
 import { SavedAssessmentResult } from "@/domain/entities/AssessmentResult";
-import { ScoringConfig } from "@/domain/repositories/ScoringConfigRepository";
-import { buildResultsPresentation, ResultsPresentation } from "@/application/services/ResultsPresenter";
 
 /**
  * Presentation-safe view of a scored assessment result.
@@ -11,17 +9,17 @@ import { buildResultsPresentation, ResultsPresentation } from "@/application/ser
  * aggregated, scored output. Raw answers stay internal, persisted for
  * audit/debugging, and are only ever read directly from the database.
  *
- * Adds the read-time-only Results page sections (score interpretation,
- * what's working) — see ResultsPresenter for why those are computed
- * here instead of persisted.
+ * Every other field (categoryScores, scoreDisplay, scoreInterpretation,
+ * roles, topPriorities, confidenceLevel) comes straight from the
+ * canonical AssessmentScoreResult computed by the scoring engine — this
+ * type does no additional derivation of its own, which is what
+ * guarantees the web page and the PDF (see PdfReportEngine) can never
+ * disagree: both are built from this exact same stored/recomputed
+ * result object, not two independent presentation layers.
  */
-export type AssessmentResultView = Omit<SavedAssessmentResult, "rawAnswers"> & ResultsPresentation;
+export type AssessmentResultView = Omit<SavedAssessmentResult, "rawAnswers">;
 
-export function toAssessmentResultView(
-  result: SavedAssessmentResult,
-  config: ScoringConfig
-): AssessmentResultView {
+export function toAssessmentResultView(result: SavedAssessmentResult): AssessmentResultView {
   const { rawAnswers: _rawAnswers, ...view } = result;
-  const presentation = buildResultsPresentation(result.overallScore, result.categoryScores, config);
-  return { ...view, ...presentation };
+  return view;
 }

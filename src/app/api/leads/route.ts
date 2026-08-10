@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       assessmentResultId: parsed.data.assessmentResultId,
       consentTimestamp: new Date(),
       consentPolicyVersion: CURRENT_PRIVACY_POLICY_VERSION,
+      resultsFollowUpConsentAt: parsed.data.resultsFollowUpConsent ? new Date() : undefined,
       marketingConsentAt: parsed.data.marketingConsent ? new Date() : undefined,
     });
     return NextResponse.json(lead, { status: 201 });

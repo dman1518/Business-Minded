@@ -8,10 +8,23 @@ import { SavedLead } from "@/domain/entities/Lead";
 function fakeSavedAssessmentResult(): SavedAssessmentResult {
   return {
     id: "assessment-1",
-    overallScore: 70,
     categoryScores: [],
-    biggestOpportunity: { categoryId: "money", categoryName: "Money", headline: "h", description: "d" },
-    biggestConstraint: { categoryId: "money", categoryName: "Money", headline: "h", description: "d" },
+    scoreDisplay: {
+      value: 70,
+      suppressed: false,
+      answeredQuestionCount: 10,
+      totalQuestionCount: 10,
+      scoreableDimensionCount: 5,
+      totalDimensionCount: 5,
+    },
+    scoreInterpretation: "Solid foundation.",
+    roles: {
+      strength: { categoryId: "money", categoryName: "Money", headline: "h", description: "d" },
+      constraint: { categoryId: "operations", categoryName: "Operations", headline: "h", description: "d" },
+      opportunity: { categoryId: "growth", categoryName: "Growth", headline: "h", description: "d" },
+      tieState: "none",
+      tieMessage: null,
+    },
     topPriorities: [],
     confidenceLevel: "High",
     rawAnswers: {},

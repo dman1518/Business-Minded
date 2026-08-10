@@ -6,6 +6,7 @@ import { checkRateLimit, getClientIp } from "@/infrastructure/security/rateLimit
 import { readJsonBodyWithLimit } from "@/infrastructure/security/requestGuards";
 import { logError, logWarning } from "@/infrastructure/logging/logger";
 import { InvalidAnswersError } from "@/domain/policies/AnswerValidation";
+import { InsufficientDataError } from "@/domain/policies/InsufficientDataError";
 
 const MAX_BODY_BYTES = 20_000; // up to 10 answers plus envelope — generous but bounded
 const RATE_LIMIT = { limit: 20, windowMs: 60_000 }; // 20 submissions / minute / IP
@@ -42,11 +43,22 @@ export async function POST(request: NextRequest) {
     const result = await container
       .submitAssessment()
       .execute(parsed.data.answers, parsed.data.segmentation);
-    const config = await container.scoringConfigRepository.getConfig();
     // Public response never includes raw answers — those stay internal
     // for auditing only. See AssessmentResultView.
-    return NextResponse.json(toAssessmentResultView(result, config), { status: 201 });
+    return NextResponse.json(toAssessmentResultView(result), { status: 201 });
   } catch (error) {
+    if (error instanceof InsufficientDataError) {
+      // Intentional, distinct outcome — every question was skipped.
+      // Not a server failure: the client is expected to key off this
+      // `code` to show "We need at least one answer..." with
+      // "Answer a question" / "Restart assessment" actions, instead of
+      // a generic scoring-error message.
+      return NextResponse.json(
+        { error: error.message, code: "INSUFFICIENT_DATA" },
+        { status: 422 }
+      );
+    }
+
     if (error instanceof InvalidAnswersError) {
       // Semantic validation against the canonical question set failed
       // (unknown question id, duplicate answer, or out-of-range value).

@@ -11,59 +11,154 @@
   },
   "categoryInsights": {
     "money": {
-      "opportunityHeadline": "Strengthen your financial foundation",
-      "opportunityDescription": "Improving margin and revenue predictability is one of the fastest ways to increase what your business is worth and to give you more freedom in how you run it.",
-      "constraintHeadline": "Inconsistent financial results",
-      "constraintDescription": "Unpredictable profit and cash flow make it harder to plan, finance, or eventually sell the business.",
-      "strengthHeadline": "Your financial foundation is solid",
-      "strengthDescription": "Strong, predictable margins give you options — to reinvest, to plan ahead, and to make decisions from a position of strength rather than scarcity.",
-      "priorityAction": "Review your pricing and margins this month, and identify one way to make next month's revenue more predictable.",
-      "priorityWhyItMatters": "Predictable profit and cash flow directly increase what the business is worth and reduce financial stress on you personally.",
-      "priorityTimeframe": "This month"
+      "Constraint": {
+        "headline": "Inconsistent financial results",
+        "description": "Profit margin and cash flow are unpredictable, making it hard to plan, finance, or eventually sell the business.",
+        "priorityAction": "Review your pricing and margins this month, and identify one way to make next month's revenue more predictable.",
+        "priorityWhyItMatters": "Predictable profit and cash flow directly increase what the business is worth and reduce financial stress on you personally.",
+        "priorityTimeframe": "This month"
+      },
+      "Developing": {
+        "headline": "Financial results are improving but still inconsistent",
+        "description": "You have some profit and revenue predictability, but not enough yet to plan with confidence.",
+        "priorityAction": "Identify the single biggest source of margin leakage or revenue unpredictability and address it this quarter.",
+        "priorityWhyItMatters": "Closing the gap between 'somewhat predictable' and 'reliable' meaningfully increases what the business is worth.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Solid": {
+        "headline": "Your financial foundation is solid",
+        "description": "Profit and revenue are reasonably predictable — there's room to make them more resilient.",
+        "priorityAction": "Build a rolling 90-day cash flow forecast so you can see disruptions coming instead of reacting to them.",
+        "priorityWhyItMatters": "Forecasting turns a solid financial position into a genuinely resilient one.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Strength": {
+        "headline": "Your financial foundation is strong",
+        "description": "Strong, predictable margins give you real options — to reinvest, to plan ahead, and to negotiate from strength.",
+        "priorityAction": "Set a formal capital allocation plan (reinvest, reserve, distribute) and stress-test it against a revenue downturn.",
+        "priorityWhyItMatters": "Protecting and deliberately allocating a strong financial position compounds the advantage instead of letting it drift.",
+        "priorityTimeframe": "Ongoing"
+      }
     },
     "operations": {
-      "opportunityHeadline": "Make execution more consistent",
-      "opportunityDescription": "Turning what's in your head into documented, repeatable processes increases what the business is worth without you personally, and frees up your time.",
-      "constraintHeadline": "Inconsistent execution",
-      "constraintDescription": "Without documented processes, quality and output depend on who happens to be doing the work.",
-      "strengthHeadline": "Your operations run consistently",
-      "strengthDescription": "Documented, repeatable processes mean quality doesn't depend on any one person — including you — which protects both business value and your freedom.",
-      "priorityAction": "Document your top two recurring processes as simple step-by-step guides this quarter.",
-      "priorityWhyItMatters": "Documented processes let the business run consistently without depending on any one person, including you.",
-      "priorityTimeframe": "This quarter"
+      "Constraint": {
+        "headline": "Inconsistent execution",
+        "description": "Without documented processes, quality and output depend entirely on who happens to be doing the work.",
+        "priorityAction": "Document your top two recurring processes as simple step-by-step guides this quarter.",
+        "priorityWhyItMatters": "Documented processes let the business run consistently without depending on any one person, including you.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Developing": {
+        "headline": "Execution is becoming more consistent",
+        "description": "Some processes are documented, but quality still varies depending on who's doing the work.",
+        "priorityAction": "Pick the process most prone to inconsistency and document it well enough that someone new could follow it.",
+        "priorityWhyItMatters": "Each process you document reduces how much quality depends on any one person.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Solid": {
+        "headline": "Your operations run fairly consistently",
+        "description": "Most key processes are documented — the next step is making sure they're actually followed and effective.",
+        "priorityAction": "Set one measurable quality or output metric for your most important process and start tracking it monthly.",
+        "priorityWhyItMatters": "Measuring a documented process is what turns 'documented' into 'reliable'.",
+        "priorityTimeframe": "This month"
+      },
+      "Strength": {
+        "headline": "Your operations run consistently",
+        "description": "Documented, repeatable processes mean quality doesn't depend on any one person — including you.",
+        "priorityAction": "Identify the one remaining bottleneck that still routes through you personally, and hand it off.",
+        "priorityWhyItMatters": "Removing the last few owner-dependent steps protects consistency as the business grows.",
+        "priorityTimeframe": "Ongoing"
+      }
     },
     "growth": {
-      "opportunityHeadline": "Build a repeatable path to new customers",
-      "opportunityDescription": "A predictable way to generate demand makes future growth less dependent on you personally, increasing both the value of the business and your freedom to step back.",
-      "constraintHeadline": "Unclear path to growth",
-      "constraintDescription": "Without a repeatable way to attract customers, growth is unpredictable and hard to plan around.",
-      "strengthHeadline": "You have a repeatable path to growth",
-      "strengthDescription": "A reliable way to bring in new customers makes future growth less dependent on luck or one-off effort, which supports both business value and your freedom.",
-      "priorityAction": "Identify the one marketing or sales activity that has worked best, and turn it into a repeatable process.",
-      "priorityWhyItMatters": "A repeatable growth engine makes future revenue less dependent on luck or one-off effort.",
-      "priorityTimeframe": "This quarter"
+      "Constraint": {
+        "headline": "Unclear path to growth",
+        "description": "Without a repeatable way to attract customers, growth is unpredictable and hard to plan around.",
+        "priorityAction": "Identify the one marketing or sales activity that has worked best, and turn it into a repeatable process.",
+        "priorityWhyItMatters": "A repeatable growth engine makes future revenue less dependent on luck or one-off effort.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Developing": {
+        "headline": "You have the beginnings of a growth engine",
+        "description": "Something is working some of the time, but it's not yet reliable enough to plan around.",
+        "priorityAction": "Track where your last five customers actually came from, and double down on whichever source shows up more than once.",
+        "priorityWhyItMatters": "Knowing what's actually working — not just what you assume is working — is the fastest way to make growth repeatable.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Solid": {
+        "headline": "You have a reasonably repeatable path to growth",
+        "description": "Demand generation works more often than not — there's room to make it more predictable.",
+        "priorityAction": "Set a simple monthly target for your best-performing growth channel and track it against actuals.",
+        "priorityWhyItMatters": "Targets turn 'usually works' into a plannable, forecastable growth engine.",
+        "priorityTimeframe": "This month"
+      },
+      "Strength": {
+        "headline": "You have a repeatable path to growth",
+        "description": "A reliable way to bring in new customers makes future growth less dependent on luck or one-off effort.",
+        "priorityAction": "Test whether your growth engine can scale — increase spend or effort on your best channel and measure the response.",
+        "priorityWhyItMatters": "Confirming your growth engine scales (not just works) is what compounds business value over time.",
+        "priorityTimeframe": "Ongoing"
+      }
     },
     "freedom": {
-      "opportunityHeadline": "Create more freedom for yourself",
-      "opportunityDescription": "Every decision or relationship that moves off your desk gives you more freedom and makes the business more valuable to a future buyer.",
-      "constraintHeadline": "The business depends heavily on you",
-      "constraintDescription": "If the business can't run well without you, it limits your freedom and is worth less to a future buyer.",
-      "strengthHeadline": "The business doesn't depend entirely on you",
-      "strengthDescription": "Key relationships and decisions that don't run through you personally give you real freedom and make the business more valuable to a future buyer.",
-      "priorityAction": "Hand off one customer or vendor relationship you currently manage personally to a team member this month.",
-      "priorityWhyItMatters": "Every relationship that moves off your desk gives you more freedom and makes the business less dependent on you.",
-      "priorityTimeframe": "This month"
+      "Constraint": {
+        "headline": "The business depends heavily on you",
+        "description": "If the business can't run well without you, it limits your freedom and is worth less to a future buyer.",
+        "priorityAction": "Hand off one customer or vendor relationship you currently manage personally to a team member this month.",
+        "priorityWhyItMatters": "Every relationship that moves off your desk gives you more freedom and makes the business less dependent on you.",
+        "priorityTimeframe": "This month"
+      },
+      "Developing": {
+        "headline": "The business is becoming less dependent on you",
+        "description": "Some relationships and decisions no longer require you personally, but many still do.",
+        "priorityAction": "List every decision that currently requires your sign-off, and delegate the one that's easiest to hand off.",
+        "priorityWhyItMatters": "Each decision you delegate is a small, compounding increase in both your freedom and the business's value.",
+        "priorityTimeframe": "This month"
+      },
+      "Solid": {
+        "headline": "The business runs reasonably well without you",
+        "description": "Most key relationships and decisions don't strictly require you — a few still do.",
+        "priorityAction": "Take a real, unplugged two-day break and note exactly what needed you. Fix that gap.",
+        "priorityWhyItMatters": "A short test run surfaces the remaining dependencies before a real absence forces the issue.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Strength": {
+        "headline": "The business doesn't depend entirely on you",
+        "description": "Key relationships and decisions that don't run through you personally give you real freedom and make the business more valuable to a future buyer.",
+        "priorityAction": "Formally document decision authority for your team so independence survives turnover, not just your current staff.",
+        "priorityWhyItMatters": "Freedom that depends on specific people isn't durable — documenting it protects the value you've built.",
+        "priorityTimeframe": "Ongoing"
+      }
     },
     "resilience": {
-      "opportunityHeadline": "Build a stronger safety net",
-      "opportunityDescription": "A business that can absorb setbacks protects its own value and gives you the freedom to take time away without everything falling apart.",
-      "constraintHeadline": "Limited ability to absorb setbacks",
-      "constraintDescription": "Without a financial or operational cushion, a single setback can put the business in real jeopardy.",
-      "strengthHeadline": "You're prepared to absorb setbacks",
-      "strengthDescription": "A financial and operational cushion protects the value you've built and gives you the freedom to weather a setback without everything falling apart.",
-      "priorityAction": "Set a target cash reserve and start setting aside a fixed amount each month until you reach it.",
-      "priorityWhyItMatters": "A cash reserve protects the business's value and gives you the freedom to weather a setback without panic.",
-      "priorityTimeframe": "Ongoing, starting this month"
+      "Constraint": {
+        "headline": "Limited ability to absorb setbacks",
+        "description": "Without a financial or operational cushion, a single setback can put the business in real jeopardy.",
+        "priorityAction": "Set a target cash reserve and start setting aside a fixed amount each month until you reach it.",
+        "priorityWhyItMatters": "A cash reserve protects the business's value and gives you the freedom to weather a setback without panic.",
+        "priorityTimeframe": "Ongoing, starting this month"
+      },
+      "Developing": {
+        "headline": "You have some ability to absorb a setback",
+        "description": "You could handle a minor disruption, but a serious one would still hurt badly.",
+        "priorityAction": "Estimate how many weeks of expenses your current reserve would cover, and set a target to double it.",
+        "priorityWhyItMatters": "Knowing your actual runway turns a vague sense of risk into a concrete, trackable goal.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Solid": {
+        "headline": "You're reasonably prepared to absorb setbacks",
+        "description": "You have a real cushion — stress-testing it against a specific scenario would confirm how far it goes.",
+        "priorityAction": "Walk through what would actually happen if you lost your biggest client for 60 days, and patch the weakest point.",
+        "priorityWhyItMatters": "A concrete scenario test finds gaps a general sense of 'we'd probably be okay' misses.",
+        "priorityTimeframe": "This quarter"
+      },
+      "Strength": {
+        "headline": "You're prepared to absorb setbacks",
+        "description": "A financial and operational cushion protects the value you've built and gives you the freedom to weather a setback without everything falling apart.",
+        "priorityAction": "Formally review your reserve and contingency plan annually so it keeps pace as the business grows.",
+        "priorityWhyItMatters": "A cushion sized for today's business can quietly become insufficient as revenue and costs grow — a scheduled review keeps it real.",
+        "priorityTimeframe": "Annually"
+      }
     }
   },
   "confidenceThresholds": [
@@ -72,8 +167,9 @@
     { "minCompleteness": 0, "level": "Low" }
   ],
   "categoryStatusThresholds": [
-    { "minScore": 16, "status": "Strength" },
-    { "minScore": 10, "status": "Developing" },
+    { "minScore": 18, "status": "Strength" },
+    { "minScore": 14, "status": "Solid" },
+    { "minScore": 8, "status": "Developing" },
     { "minScore": 0, "status": "Constraint" }
   ],
   "scoreInterpretationThresholds": [

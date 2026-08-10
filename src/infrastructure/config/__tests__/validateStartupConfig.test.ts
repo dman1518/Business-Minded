@@ -108,21 +108,31 @@ describe("validateStartupConfig", () => {
     );
   });
 
-  it("fails if required insight text is missing for a category", () => {
+  it("fails if required insight text is missing for a category band", () => {
     const config = buildValidScoringConfig();
-    config.categoryInsights.resilience.strengthHeadline = "";
+    config.categoryInsights.resilience.Strength.headline = "";
 
     expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
-      /Missing or empty "strengthHeadline" text for category "resilience"/
+      /Missing or empty "headline" text for category "resilience" band "Strength"/
     );
   });
 
-  it("fails if priority action/why/timeframe text is missing for a category", () => {
+  it("fails if priority action/why/timeframe text is missing for a category band", () => {
     const config = buildValidScoringConfig();
-    config.categoryInsights.money.priorityWhyItMatters = "";
+    config.categoryInsights.money.Constraint.priorityWhyItMatters = "";
 
     expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
-      /Missing or empty "priorityWhyItMatters" text for category "money"/
+      /Missing or empty "priorityWhyItMatters" text for category "money" band "Constraint"/
+    );
+  });
+
+  it("fails if a band is missing entirely for a category", () => {
+    const config = buildValidScoringConfig();
+    // @ts-expect-error — intentionally invalid for the test
+    delete config.categoryInsights.growth.Solid;
+
+    expect(() => validateStartupConfig(buildValidQuestionSet(), config)).toThrow(
+      /Missing categoryInsights\."growth"\."Solid" band copy/
     );
   });
 

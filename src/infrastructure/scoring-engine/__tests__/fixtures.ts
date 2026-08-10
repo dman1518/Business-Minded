@@ -37,6 +37,16 @@ export function buildValidQuestionSet(): QuestionSet {
   };
 }
 
+function fakeBandCopy(id: string, band: string) {
+  return {
+    headline: `${id} ${band} headline`,
+    description: `${id} ${band} description`,
+    priorityAction: `${id} ${band} priority action`,
+    priorityWhyItMatters: `${id} ${band} priority why`,
+    priorityTimeframe: `${id} ${band} priority timeframe`,
+  };
+}
+
 export function buildValidScoringConfig(): ScoringConfig {
   const categoryWeights: Record<string, number> = {};
   const categoryInsights: ScoringConfig["categoryInsights"] = {};
@@ -44,15 +54,10 @@ export function buildValidScoringConfig(): ScoringConfig {
   for (const id of REQUIRED_CATEGORY_IDS) {
     categoryWeights[id] = 0.2;
     categoryInsights[id] = {
-      opportunityHeadline: `${id} opportunity headline`,
-      opportunityDescription: `${id} opportunity description`,
-      constraintHeadline: `${id} constraint headline`,
-      constraintDescription: `${id} constraint description`,
-      strengthHeadline: `${id} strength headline`,
-      strengthDescription: `${id} strength description`,
-      priorityAction: `${id} priority action`,
-      priorityWhyItMatters: `${id} priority why`,
-      priorityTimeframe: `${id} priority timeframe`,
+      Constraint: fakeBandCopy(id, "Constraint"),
+      Developing: fakeBandCopy(id, "Developing"),
+      Solid: fakeBandCopy(id, "Solid"),
+      Strength: fakeBandCopy(id, "Strength"),
     };
   }
 
@@ -66,9 +71,12 @@ export function buildValidScoringConfig(): ScoringConfig {
       { minCompleteness: 0.6, level: "Medium" },
       { minCompleteness: 0, level: "Low" },
     ],
+    // Matches production scoring-rules.json: 0-7 Constraint,
+    // 8-13 Developing, 14-17 Solid, 18-20 Strength.
     categoryStatusThresholds: [
-      { minScore: 16, status: "Strength" },
-      { minScore: 10, status: "Developing" },
+      { minScore: 18, status: "Strength" },
+      { minScore: 14, status: "Solid" },
+      { minScore: 8, status: "Developing" },
       { minScore: 0, status: "Constraint" },
     ],
     scoreInterpretationThresholds: [

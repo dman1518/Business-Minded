@@ -1,17 +1,21 @@
-/** Per-category narrative copy used to build Results-page insights. */
-export interface CategoryInsightConfig {
-  opportunityHeadline: string;
-  opportunityDescription: string;
-  constraintHeadline: string;
-  constraintDescription: string;
-  /** Used for the "What's working" section when this category is the standout strength. */
-  strengthHeadline: string;
-  strengthDescription: string;
-  /** Used when this category lands in "Top Three Priorities". */
+/**
+ * Narrative + recommendation copy for one performance band within one
+ * category. Every category defines all four bands, so recommendation
+ * text always varies with the respondent's actual performance in that
+ * dimension — a Strength-band business never sees Constraint-band
+ * remedial copy, and vice versa.
+ */
+export interface BandCopy {
+  /** Short headline, used whichever role (strength/constraint/opportunity) this band ends up filling. */
+  headline: string;
+  description: string;
   priorityAction: string;
   priorityWhyItMatters: string;
   priorityTimeframe: string;
 }
+
+/** Per-category copy, one BandCopy per performance band. */
+export type CategoryInsightConfig = Record<"Constraint" | "Developing" | "Solid" | "Strength", BandCopy>;
 
 /**
  * Confidence represents evidence quality, not business quality: it is
@@ -30,16 +34,16 @@ export interface ConfidenceThreshold {
 }
 
 /**
- * Maps a category's /20 score to a plain-language status. Evaluated
- * highest-minScore-first; the first threshold the score meets or
- * exceeds wins. Must include an entry with `minScore: 0` as a
+ * Maps a category's /20 score to a plain-language performance band.
+ * Evaluated highest-minScore-first; the first threshold the score
+ * meets or exceeds wins. Must include an entry with `minScore: 0` as a
  * catch-all. Never produces "Insufficient data" — the scoring engine
  * assigns that state directly when a category has no answers at all,
  * bypassing these thresholds entirely.
  */
 export interface CategoryStatusThreshold {
   minScore: number;
-  status: "Strength" | "Developing" | "Constraint";
+  status: "Strength" | "Solid" | "Developing" | "Constraint";
 }
 
 /**
@@ -66,7 +70,7 @@ export interface ScoringConfig {
   categoryStatusThresholds: CategoryStatusThreshold[];
   /** See ScoreInterpretationThreshold — evaluated highest-score-first. */
   scoreInterpretationThresholds: ScoreInterpretationThreshold[];
-  /** How many categories feed into "Top Three Priorities". */
+  /** Maximum number of categories that can feed into "Top Priorities" (actual count is capped by eligible-dimension count). */
   topPriorityCount: number;
 }
 

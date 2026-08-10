@@ -27,10 +27,9 @@ export async function GET(
       return NextResponse.json({ error: "Assessment result not found." }, { status: 404 });
     }
 
-    const config = await container.scoringConfigRepository.getConfig();
     // Public response never includes raw answers — those stay internal
     // for auditing only. See AssessmentResultView.
-    return NextResponse.json(toAssessmentResultView(result, config));
+    return NextResponse.json(toAssessmentResultView(result));
   } catch (error) {
     logError("assessments.get_failed", error, { clientIp, id: params.id });
     return NextResponse.json({ error: "Unable to load assessment result." }, { status: 500 });

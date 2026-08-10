@@ -91,4 +91,37 @@ describe("CaptureLeadSchema", () => {
       expect(result.data.hp).toBe("http://spam.example");
     }
   });
+
+  it("treats resultsFollowUpConsent as a third, separate optional opt-in independent of reportConsent and marketingConsent", () => {
+    const result = CaptureLeadSchema.safeParse(
+      validPayload({ resultsFollowUpConsent: true, marketingConsent: false })
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.resultsFollowUpConsent).toBe(true);
+      expect(result.data.marketingConsent).toBe(false);
+      expect(result.data.reportConsent).toBe(true);
+    }
+  });
+
+  it("defaults resultsFollowUpConsent to false when omitted", () => {
+    const result = CaptureLeadSchema.safeParse(validPayload());
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.resultsFollowUpConsent).toBe(false);
+    }
+  });
+
+  it("normalizes a website with a scheme and www prefix to a bare domain", () => {
+    const result = CaptureLeadSchema.safeParse(validPayload({ website: "https://www.acme.com" }));
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.website).toBe("acme.com");
+    }
+  });
+
+  it("rejects a website value that isn't a plausible domain or URL", () => {
+    const result = CaptureLeadSchema.safeParse(validPayload({ website: "not a website!!" }));
+    expect(result.success).toBe(false);
+  });
 });
