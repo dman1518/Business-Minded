@@ -45,4 +45,20 @@ describe("SubmitAssessmentSchema", () => {
       expect(parsed.data.segmentation).toEqual({ companySize: "6_20" });
     }
   });
+
+  it("REQUIRED TEST: accepts an empty answers array at the wire boundary (the real all-skipped payload shape)", () => {
+    // skipAnswer() deletes the key entirely (see useAssessmentProgress),
+    // so a fully-skipped assessment submits answers: [] over the wire.
+    // This schema must NOT reject that with a generic 400 -- it has to
+    // reach SubmitAssessment / ConfigurableScoringEngine so the
+    // intentional InsufficientDataError -> 422 INSUFFICIENT_DATA path
+    // fires instead. A .min(1) here previously short-circuited that
+    // and reintroduced the all-skipped generic-error bug at the schema
+    // layer (caught via live production testing, not a local test).
+    const parsed = SubmitAssessmentSchema.safeParse({ answers: [] });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.answers).toEqual([]);
+    }
+  });
 });
