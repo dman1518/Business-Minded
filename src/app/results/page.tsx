@@ -12,8 +12,22 @@ import { LeadCaptureForm, LeadFormValues } from "@/components/lead-capture/LeadC
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trackEvent } from "@/lib/analytics";
+import { insightRoleLabel } from "@/domain/policies/ComparativeLanguage";
+import { TieState } from "@/domain/entities/Score";
 
 type ViewStep = "results" | "leadCapture" | "complete";
+
+/**
+ * One heading per tie state (see TieState in Score.ts) — the heading
+ * always names the ACTUAL band every scoreable dimension tied on, so
+ * a Developing-band tie never reads the same as a Solid-band tie.
+ */
+const TIE_STATE_HEADINGS: Record<Exclude<TieState, "none">, string> = {
+  "all-low-tied": "Broad, foundational risk",
+  "developing-tied": "A consistently developing profile",
+  "solid-tied": "A consistently solid profile",
+  "all-high-tied": "A consistently strong profile",
+};
 
 export default function ResultsPage() {
   return (
@@ -124,17 +138,15 @@ function ResultsContent() {
           {/* 2-4. What's working / Biggest constraint / Biggest opportunity, or
               a balanced-profile tie explanation when every scoreable dimension
               tied — showing an arbitrarily-picked "biggest" would be false
-              precision in that case. */}
+              precision in that case. Role labels (and the tie heading) are
+              derived from the canonical tieState / scoreableDimensionCount —
+              never hardcoded per score — so a Developing-band tie reads
+              differently from a Solid-band tie, and a single eligible
+              dimension is never framed as a comparative "biggest". */}
           {result.roles.tieState !== "none" ? (
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {result.roles.tieState === "all-high-tied"
-                    ? "A consistently strong profile"
-                    : result.roles.tieState === "all-low-tied"
-                      ? "Broad, foundational risk"
-                      : "A balanced profile"}
-                </CardTitle>
+                <CardTitle>{TIE_STATE_HEADINGS[result.roles.tieState]}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="min-w-0 break-words text-sm text-muted-foreground">{result.roles.tieMessage}</p>
@@ -143,10 +155,22 @@ function ResultsContent() {
           ) : (
             <>
               <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-                <InsightCard label="What's Working" insight={result.roles.strength} tone="positive" />
-                <InsightCard label="Biggest Constraint" insight={result.roles.constraint} tone="negative" />
+                <InsightCard
+                  label={insightRoleLabel("strength", result.scoreDisplay.scoreableDimensionCount)}
+                  insight={result.roles.strength}
+                  tone="positive"
+                />
+                <InsightCard
+                  label={insightRoleLabel("constraint", result.scoreDisplay.scoreableDimensionCount)}
+                  insight={result.roles.constraint}
+                  tone="negative"
+                />
               </div>
-              <InsightCard label="Biggest Opportunity" insight={result.roles.opportunity} tone="positive" />
+              <InsightCard
+                label={insightRoleLabel("opportunity", result.scoreDisplay.scoreableDimensionCount)}
+                insight={result.roles.opportunity}
+                tone="positive"
+              />
             </>
           )}
 
