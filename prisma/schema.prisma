@@ -15,13 +15,16 @@ datasource db {
 }
 
 model AssessmentResult {
-  // cuid2 (not classic cuid()): no embedded timestamp/counter, so this
-  // public identifier — baked into shareable /results?id=... links —
-  // is not sequentially guessable or enumerable. See prisma/schema.prisma
-  // migration history: this changes only client-side ID generation for
-  // NEW rows, not the column type, so existing classic-cuid ids remain
-  // valid and readable.
-  id                   String   @id @default(cuid(2))
+  // NOTE: cuid(2)/cuid2 was attempted here for non-enumerable public
+  // IDs (see PR #2 discussion) but Prisma CLI 5.22.0 (the version this
+  // project is pinned to) rejects "@default(cuid(2))" at schema-parse
+  // time ("the cuid function does not take any argument") — this broke
+  // the production build (Vercel deployment dpl_EscV49H7TFnBkaf67P4Ndu3Amg5B,
+  // errorCode validation_failure). Reverted to classic cuid() to restore
+  // a working deploy. Upgrading to cuid2 remains a valid future
+  // improvement, but requires bumping the Prisma CLI/client version
+  // first and verifying schema validation succeeds before merging.
+  id                   String   @id @default(cuid())
   // Canonical, versioned scoring output -- the single source of truth
   // consumed by both the web results page and PDF generation. Shape:
   // AssessmentScoreResult (see src/domain/entities/Score.ts).
@@ -63,8 +66,8 @@ model AssessmentResult {
 }
 
 model Lead {
-  // cuid2 — see AssessmentResult.id comment above.
-  id                    String   @id @default(cuid(2))
+  // See AssessmentResult.id comment above re: reverting cuid(2) -> cuid().
+  id                    String   @id @default(cuid())
   firstName             String
   email                 String
   // Optional per the P1 lead-capture brief: only First name and Email
