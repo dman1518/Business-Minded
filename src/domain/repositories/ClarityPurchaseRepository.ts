@@ -58,4 +58,6 @@ export interface ClarityPurchaseRepository {
     >
   ): Promise<boolean>;
   listForFulfillment(): Promise<ClarityPurchase[]>;
+  /** Real, accurate count of purchases that both used founding pricing AND actually paid — the basis for computeOfferPricing(). */
+  countPaidFoundingPurchases(): Promise<number>;
 }
