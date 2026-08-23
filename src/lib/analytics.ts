@@ -14,7 +14,9 @@ import { track } from "@vercel/analytics";
  * personal information (name, email, company, website) in analytics
  * properties. Only structural signals are allowed — assessment id,
  * question number, dimension (category id), device category, and
- * timestamp — never the content of what someone typed or chose.
+ * timestamp — never the content of what someone typed or chose. The
+ * same rule applies to the Clarity Session funnel events below: never
+ * intake answer text, never a dollar amount, never a Stripe id.
  * Vercel Analytics property values must also be flat primitives
  * (string/number/boolean/null) — never a nested object.
  */
@@ -42,7 +44,12 @@ type AnalyticsEvent =
   | { name: "lead_submitted"; assessmentId: string }
   | { name: "report_generated"; assessmentId: string }
   | { name: "report_delivered"; assessmentId: string }
-  | { name: "assessment_retake_started"; assessmentId?: string };
+  | { name: "assessment_retake_started"; assessmentId?: string }
+  | { name: "clarity_offer_viewed" }
+  | { name: "clarity_checkout_started" }
+  | { name: "clarity_payment_confirmed" }
+  | { name: "clarity_intake_started" }
+  | { name: "clarity_intake_submitted" };
 
 /**
  * Fires a named analytics event via Vercel Web Analytics, automatically
