@@ -120,6 +120,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     stripeCustomerId: customerId ?? null,
     paidAt: new Date(),
   });
+
+  // "paid" is a transient resting state, not the customer's next
+  // action — the very next thing they need to do is intake. Chaining
+  // this transition here (rather than leaving the purchase sitting at
+  // "paid" indefinitely) is a deterministic consequence of the state
+  // machine, not a business-policy choice: paid -> intake_pending is
+  // the only forward transition available from "paid" besides a
+  // refund. Safe to run on every delivery/retry — updateStatus no-ops
+  // once the purchase has already moved past "paid".
+  await container.clarityPurchaseRepository.updateStatus(purchase.id, "intake_pending");
 }
 
 async function handleCheckoutExpired(session: Stripe.Checkout.Session): Promise<void> {
