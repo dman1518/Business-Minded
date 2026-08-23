@@ -4,6 +4,7 @@ import { PrismaAssessmentResultRepository } from "@/infrastructure/repositories/
 import { PrismaLeadRepository } from "@/infrastructure/repositories/PrismaLeadRepository";
 import { PrismaClarityPurchaseRepository } from "@/infrastructure/repositories/PrismaClarityPurchaseRepository";
 import { PrismaClarityWebhookEventRepository } from "@/infrastructure/repositories/PrismaClarityWebhookEventRepository";
+import { PrismaClarityIntakeRepository } from "@/infrastructure/repositories/PrismaClarityIntakeRepository";
 import { StripeCheckoutGateway } from "@/infrastructure/payments/StripeCheckoutGateway";
 import { ConfigurableScoringEngine } from "@/infrastructure/scoring-engine/ConfigurableScoringEngine";
 import { PdfReportEngine } from "@/infrastructure/report-engine/PdfReportEngine";
@@ -18,6 +19,7 @@ import { SubmitAssessment } from "@/application/use-cases/SubmitAssessment";
 import { CaptureLead } from "@/application/use-cases/CaptureLead";
 import { GenerateReport } from "@/application/use-cases/GenerateReport";
 import { CreateClarityCheckoutSession } from "@/application/use-cases/CreateClarityCheckoutSession";
+import { SubmitClarityIntake } from "@/application/use-cases/SubmitClarityIntake";
 
 /**
  * Composition root.
@@ -47,6 +49,7 @@ const leadRepository = new PrismaLeadRepository();
 const reportEngine = new PdfReportEngine();
 const clarityPurchaseRepository = new PrismaClarityPurchaseRepository();
 const clarityWebhookEventRepository = new PrismaClarityWebhookEventRepository();
+const clarityIntakeRepository = new PrismaClarityIntakeRepository();
 const clarityCheckoutGateway = new StripeCheckoutGateway();
 
 export const container = {
@@ -67,8 +70,10 @@ export const container = {
       assessmentResultRepository,
       leadRepository
     ),
+  submitClarityIntake: () => new SubmitClarityIntake(clarityPurchaseRepository, clarityIntakeRepository),
   clarityPurchaseRepository,
   clarityWebhookEventRepository,
+  clarityIntakeRepository,
   clarityCheckoutGateway,
   assessmentResultRepository,
   scoringConfigRepository,
