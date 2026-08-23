@@ -2,6 +2,9 @@ import { JsonQuestionRepository } from "@/infrastructure/repositories/JsonQuesti
 import { JsonScoringConfigRepository } from "@/infrastructure/repositories/JsonScoringConfigRepository";
 import { PrismaAssessmentResultRepository } from "@/infrastructure/repositories/PrismaAssessmentResultRepository";
 import { PrismaLeadRepository } from "@/infrastructure/repositories/PrismaLeadRepository";
+import { PrismaClarityPurchaseRepository } from "@/infrastructure/repositories/PrismaClarityPurchaseRepository";
+import { PrismaClarityWebhookEventRepository } from "@/infrastructure/repositories/PrismaClarityWebhookEventRepository";
+import { StripeCheckoutGateway } from "@/infrastructure/payments/StripeCheckoutGateway";
 import { ConfigurableScoringEngine } from "@/infrastructure/scoring-engine/ConfigurableScoringEngine";
 import { PdfReportEngine } from "@/infrastructure/report-engine/PdfReportEngine";
 import { validateStartupConfig } from "@/infrastructure/config/validateStartupConfig";
@@ -14,6 +17,7 @@ import { GetQuestionSet } from "@/application/use-cases/GetQuestionSet";
 import { SubmitAssessment } from "@/application/use-cases/SubmitAssessment";
 import { CaptureLead } from "@/application/use-cases/CaptureLead";
 import { GenerateReport } from "@/application/use-cases/GenerateReport";
+import { CreateClarityCheckoutSession } from "@/application/use-cases/CreateClarityCheckoutSession";
 
 /**
  * Composition root.
@@ -41,6 +45,9 @@ const assessmentResultRepository = new PrismaAssessmentResultRepository(
 );
 const leadRepository = new PrismaLeadRepository();
 const reportEngine = new PdfReportEngine();
+const clarityPurchaseRepository = new PrismaClarityPurchaseRepository();
+const clarityWebhookEventRepository = new PrismaClarityWebhookEventRepository();
+const clarityCheckoutGateway = new StripeCheckoutGateway();
 
 export const container = {
   getQuestionSet: () => new GetQuestionSet(questionRepository),
@@ -53,6 +60,16 @@ export const container = {
     ),
   captureLead: () => new CaptureLead(leadRepository, assessmentResultRepository),
   generateReport: () => new GenerateReport(assessmentResultRepository, reportEngine),
+  createClarityCheckoutSession: () =>
+    new CreateClarityCheckoutSession(
+      clarityPurchaseRepository,
+      clarityCheckoutGateway,
+      assessmentResultRepository,
+      leadRepository
+    ),
+  clarityPurchaseRepository,
+  clarityWebhookEventRepository,
+  clarityCheckoutGateway,
   assessmentResultRepository,
   scoringConfigRepository,
 };
