@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trackEvent } from "@/lib/analytics";
 import { insightRoleLabel } from "@/domain/policies/ComparativeLanguage";
+import { selectVisibleInsights } from "@/domain/policies/VisibleInsights";
 import { TieState } from "@/domain/entities/Score";
 
 type ViewStep = "results" | "leadCapture" | "complete";
@@ -153,25 +154,52 @@ function ResultsContent() {
               </CardContent>
             </Card>
           ) : (
-            <>
-              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            (() => {
+              // Only a role with an actual selected dimension renders a
+              // card here — an unfilled role (e.g. no eligible second
+              // dimension, or below the comparative-language threshold)
+              // is omitted entirely rather than shown as an empty
+              // placeholder card. This is what stops a one-dimension
+              // sparse result from showing three identical "Preliminary
+              // Focus Area" cards (two of them empty) instead of one.
+              // See selectVisibleInsights for the (unit-tested) rule.
+              const filledInsights = selectVisibleInsights(result.roles);
+
+              if (filledInsights.length === 0) {
+                return null;
+              }
+
+              const renderCard = (entry: (typeof filledInsights)[number]) => (
                 <InsightCard
-                  label={insightRoleLabel("strength", result.scoreDisplay.scoreableDimensionCount)}
-                  insight={result.roles.strength}
-                  tone="positive"
+                  key={entry.role}
+                  label={insightRoleLabel(entry.role, result.scoreDisplay.scoreableDimensionCount)}
+                  insight={entry.insight}
+                  tone={entry.tone}
                 />
-                <InsightCard
-                  label={insightRoleLabel("constraint", result.scoreDisplay.scoreableDimensionCount)}
-                  insight={result.roles.constraint}
-                  tone="negative"
-                />
-              </div>
-              <InsightCard
-                label={insightRoleLabel("opportunity", result.scoreDisplay.scoreableDimensionCount)}
-                insight={result.roles.opportunity}
-                tone="positive"
-              />
-            </>
+              );
+
+              return (
+                <>
+                  <h3 className="min-w-0 break-words text-lg font-semibold leading-tight tracking-tight sm:text-xl">
+                    Key Insights
+                  </h3>
+                  {filledInsights.length >= 3 ? (
+                    <>
+                      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                        {filledInsights.slice(0, 2).map(renderCard)}
+                      </div>
+                      {renderCard(filledInsights[2])}
+                    </>
+                  ) : filledInsights.length === 2 ? (
+                    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                      {filledInsights.map(renderCard)}
+                    </div>
+                  ) : (
+                    renderCard(filledInsights[0])
+                  )}
+                </>
+              );
+            })()
           )}
 
           {/* 5. Top priorities */}
