@@ -149,7 +149,13 @@ export class PrismaClarityPurchaseRepository implements ClarityPurchaseRepositor
     const records = await prisma.clarityPurchase.findMany({
       orderBy: { createdAt: "desc" },
     });
-    return records.map((r) => this.toDomain(r));
+    return records.map((r: PrismaClarityPurchaseRecord) => this.toDomain(r));
+  }
+
+  async countPaidFoundingPurchases(): Promise<number> {
+    return prisma.clarityPurchase.count({
+      where: { founderPricingApplied: true, paidAt: { not: null } },
+    });
   }
 
   private toDomain(record: PrismaClarityPurchaseRecord): ClarityPurchase {
