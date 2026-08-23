@@ -62,6 +62,12 @@ model AssessmentResult {
 
   lead Lead?
 
+  // Business Clarity Session purchase attempts tied to this assessment.
+  // One-to-many (not one-to-one) because a checkout can be abandoned,
+  // cancelled, or retried, producing more than one ClarityPurchase row
+  // per assessment over time.
+  clarityPurchases ClarityPurchase[]
+
   @@map("assessment_results")
 }
 
@@ -95,6 +101,136 @@ model Lead {
   reportGeneratedAt     DateTime?
   createdAt             DateTime @default(now())
 
+  // Business Clarity Session purchase attempts tied to this lead.
+  // One-to-many for the same reason as AssessmentResult.clarityPurchases.
+  clarityPurchases ClarityPurchase[]
+
   @@index([email])
   @@map("leads")
+}
+
+// --- Business Clarity Session (paid offer) ---
+//
+// Three tables support the paid-offer funnel:
+//   ClarityPurchase     — one row per checkout attempt (Stripe Checkout
+//                         Session). Explicit `status` state machine
+//                         (see src/domain/value-objects/ClarityPurchaseStatus.ts)
+//                         rather than nullable-field ambiguity.
+//   ClarityIntake       — the post-purchase intake questionnaire,
+//                         1:1 with a completed purchase.
+//   ClarityWebhookEvent — processed Stripe webhook event IDs, used
+//                         purely for replay/duplicate-delivery
+//                         protection (Stripe redelivers webhooks and
+//                         guarantees at-least-once, not exactly-once,
+//                         delivery).
+
+model ClarityPurchase {
+  id String @id @default(cuid())
+
+  // Optional: a purchase can theoretically be started without a prior
+  // assessment (e.g. a direct link to /clarity-session), so these are
+  // nullable. When present, they link the purchase back to the free
+  // assessment that drove it, for attribution and to prefill intake.
+  assessmentResultId String?
+  assessmentResult   AssessmentResult? @relation(fields: [assessmentResultId], references: [id])
+  leadId             String?
+  lead               Lead?             @relation(fields: [leadId], references: [id])
+
+  // Client-generated UUID, one per checkout attempt (created once when
+  // the "Book my session" button is first clicked, persisted in
+  // sessionStorage so a page refresh reuses it). Used both as a DB
+  // uniqueness guard and as the Stripe Idempotency-Key header, so a
+  // double-click or retried request cannot create two Checkout
+  // Sessions or two rows for the same attempt.
+  clientRequestId String @unique
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeCustomerId        String?
+
+  // Integer minor units (e.g. 29700 = $297.00) — never a float, to
+  // avoid floating-point currency errors. Always server-computed from
+  // the current offer configuration; never trusts a client-submitted
+  // amount.
+  amountMinorUnits Int
+  currency         String @default("usd")
+
+  // Identifies which offer configuration (price, copy version) produced
+  // this purchase, e.g. "clarity-session-founding-297". Lets pricing
+  // change over time without rewriting historical rows.
+  offerVersion          String
+  founderPricingApplied Boolean @default(false)
+
+  // See ClarityPurchaseStatus in src/domain/value-objects/ClarityPurchaseStatus.ts
+  // for the full state machine and allowed transitions.
+  status String @default("checkout_created")
+
+  // Non-PII marketing attribution only (utm_source/medium/campaign).
+  // Never free text, names, or emails.
+  sourceCampaign Json?
+
+  paidAt       DateTime?
+  refundedAt   DateTime?
+  refundReason String?
+
+  intakeStatus String @default("not_started") // not_started | in_progress | complete
+
+  schedulingStatus String    @default("not_started") // not_started | link_sent | externally_managed | scheduled
+  scheduledAt      DateTime?
+
+  planDeliveredAt DateTime?
+  followUpDueAt   DateTime?
+  followUpDoneAt  DateTime?
+
+  // Free-text notes visible only in the internal fulfillment view —
+  // never surfaced to the customer or included in analytics.
+  internalNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  intake ClarityIntake?
+
+  @@index([status])
+  @@index([assessmentResultId])
+  @@index([leadId])
+  @@map("clarity_purchases")
+}
+
+model ClarityIntake {
+  id String @id @default(cuid())
+
+  purchaseId String          @unique
+  purchase   ClarityPurchase @relation(fields: [purchaseId], references: [id])
+
+  // Structured answers to the 13 intake questions (see
+  // src/domain/entities/ClarityIntake.ts for the shape). Kept as JSON
+  // (not one column per question) so the questionnaire can evolve
+  // without a migration each time, while remaining server-validated
+  // against a fixed Zod schema before being written.
+  answers Json
+
+  status      String    @default("draft") // draft | submitted
+  submittedAt DateTime?
+
+  consentTimestamp     DateTime?
+  consentPolicyVersion String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clarity_intakes")
+}
+
+model ClarityWebhookEvent {
+  id String @id @default(cuid())
+
+  // Stripe's event.id — unique constraint is the actual replay guard.
+  // A webhook handler looks this up first and no-ops if it already
+  // exists, before touching any ClarityPurchase row.
+  stripeEventId String @unique
+  eventType     String
+  processedAt   DateTime @default(now())
+
+  @@map("clarity_webhook_events")
 }
