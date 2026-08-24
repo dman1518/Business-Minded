@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import {
   ClarityPurchaseRepository,
   CreateClarityPurchaseInput,
@@ -67,7 +68,11 @@ export class PrismaClarityPurchaseRepository implements ClarityPurchaseRepositor
           currency: input.currency,
           offerVersion: input.offerVersion,
           founderPricingApplied: input.founderPricingApplied,
-          sourceCampaign: input.sourceCampaign ?? undefined,
+          // Prisma's generated Json-column type (InputJsonValue) requires an
+          // index signature our specific SourceCampaign interface doesn't
+          // structurally have. Safe cast: sourceCampaign is always a plain,
+          // JSON-serializable object (or omitted) by construction.
+          sourceCampaign: (input.sourceCampaign as unknown as Prisma.InputJsonValue) ?? undefined,
         },
       });
       return this.toDomain(created);
