@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { SchedulingCta } from "@/components/clarity-session/SchedulingCta";
 import { trackEvent } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/formatCurrency";
 
@@ -178,9 +179,12 @@ function SuccessContent() {
               </Button>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Thanks — we have your intake on file. We&apos;ll be in touch about scheduling.
-            </p>
+            <>
+              <p className="text-sm text-muted-foreground">
+                Thanks — we have your intake on file. Next: pick a time for your session.
+              </p>
+              <SchedulingCta purchaseId={purchase.purchaseId} />
+            </>
           )}
         </CardContent>
       </Card>
