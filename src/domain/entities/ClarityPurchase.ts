@@ -15,6 +15,8 @@ export interface ClarityPurchase {
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
   stripeCustomerId: string | null;
+  /** Captured from Stripe Checkout's collected billing email once the webhook confirms payment. */
+  customerEmail: string | null;
   amountMinorUnits: number;
   currency: string;
   offerVersion: string;
