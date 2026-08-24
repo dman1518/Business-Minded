@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AssessmentResultView } from "@/application/dto/AssessmentResultView";
 import { OverallScore } from "@/components/results/OverallScore";
@@ -246,16 +247,34 @@ function ResultsContent() {
           <CardHeader>
             <CardTitle>Your report is ready</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <p className="text-sm text-muted-foreground">
-              Your report has been downloaded to this device as a PDF.
-            </p>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={downloadReport}>
-                Download again
-              </Button>
-              <Button variant="ghost" onClick={handleRetake}>
-                Retake Assessment
+          <CardContent className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                Your report has been downloaded to this device as a PDF.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={downloadReport}>
+                  Download again
+                </Button>
+                <Button variant="ghost" onClick={handleRetake}>
+                  Retake Assessment
+                </Button>
+              </div>
+            </div>
+
+            {/* Funnel step: Assessment -> Results -> Business Clarity Session
+                offer. Only surfaced after the report is downloaded, and never
+                gates or interrupts the free report flow above it. */}
+            <div className="flex flex-col items-center gap-2 border-t border-border pt-6 text-center">
+              <p className="text-sm font-medium">Want a focused plan built from these results?</p>
+              <p className="text-sm text-muted-foreground">
+                The Business Clarity Session turns your results into a concrete 90-day plan in a private
+                75-minute working session.
+              </p>
+              <Button asChild className="mt-1">
+                <Link href={id ? `/clarity-session?assessment_result_id=${id}` : "/clarity-session"}>
+                  Explore the Business Clarity Session
+                </Link>
               </Button>
             </div>
           </CardContent>
