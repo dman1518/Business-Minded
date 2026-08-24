@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { ADMIN_SECRET_STORAGE_KEY } from "@/app/internal/clarity-fulfillment/page";
+import { ADMIN_SECRET_STORAGE_KEY } from "@/lib/clarityAdminStorage";
 
 interface PurchaseDetail {
   id: string;
