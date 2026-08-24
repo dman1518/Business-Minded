@@ -3,6 +3,8 @@ import { container } from "@/infrastructure/container";
 import { SubmitClarityIntakeSchema } from "@/application/dto/SubmitClarityIntakeDto";
 import { checkRateLimit, getClientIp } from "@/infrastructure/security/rateLimiter";
 import { readJsonBodyWithLimit } from "@/infrastructure/security/requestGuards";
+import { getInternalNotificationEmail } from "@/infrastructure/email/resendConfig";
+import { buildInternalAlertEmail } from "@/infrastructure/email/clarityEmailTemplates";
 import { logError } from "@/infrastructure/logging/logger";
 
 const MAX_BODY_BYTES = 20_000; // nine free-text fields, generous but bounded
@@ -59,6 +61,34 @@ export async function POST(request: NextRequest) {
         { error: "We don't see a completed payment for this session yet." },
         { status: 403 }
       );
+    }
+
+    // Best-effort internal alert so the business owner knows to review
+    // and prepare — never allowed to affect whether the customer's
+    // submission is reported as successful.
+    const internalRecipient = getInternalNotificationEmail();
+    if (internalRecipient) {
+      try {
+        const purchase = await container.clarityPurchaseRepository.findById(parsed.data.purchaseId);
+        if (purchase) {
+          const origin = new URL(request.url).origin;
+          const email = buildInternalAlertEmail({
+            purchaseId: purchase.id,
+            customerEmail: purchase.customerEmail,
+            amountMinorUnits: purchase.amountMinorUnits,
+            currency: purchase.currency,
+            fulfillmentUrl: `${origin}/internal/clarity-fulfillment/${purchase.id}`,
+          });
+          const sendResult = await container.emailGateway.send({ to: internalRecipient, ...email });
+          if (sendResult.kind === "failed") {
+            logError("clarity_intake.internal_alert_failed", new Error(sendResult.message), {
+              purchaseId: purchase.id,
+            });
+          }
+        }
+      } catch (error) {
+        logError("clarity_intake.internal_alert_failed", error, { clientIp });
+      }
     }
 
     return NextResponse.json({ submitted: true }, { status: 200 });
