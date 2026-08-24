@@ -12,6 +12,7 @@ CREATE TABLE "clarity_purchases" (
     "stripeCheckoutSessionId" TEXT,
     "stripePaymentIntentId" TEXT,
     "stripeCustomerId" TEXT,
+    "customerEmail" TEXT,
     "amountMinorUnits" INTEGER NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'usd',
     "offerVersion" TEXT NOT NULL,
