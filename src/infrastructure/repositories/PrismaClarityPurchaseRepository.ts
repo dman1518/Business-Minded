@@ -1,6 +1,7 @@
 import {
   ClarityPurchaseRepository,
   CreateClarityPurchaseInput,
+  ClarityPurchaseFieldUpdates,
 } from "@/domain/repositories/ClarityPurchaseRepository";
 import { ClarityPurchase, SourceCampaign } from "@/domain/entities/ClarityPurchase";
 import {
@@ -28,6 +29,7 @@ type PrismaClarityPurchaseRecord = {
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
   stripeCustomerId: string | null;
+  customerEmail: string | null;
   amountMinorUnits: number;
   currency: string;
   offerVersion: string;
@@ -145,6 +147,13 @@ export class PrismaClarityPurchaseRepository implements ClarityPurchaseRepositor
     return true;
   }
 
+  async updateFields(id: string, fields: ClarityPurchaseFieldUpdates): Promise<void> {
+    await prisma.clarityPurchase.update({
+      where: { id },
+      data: { ...fields },
+    });
+  }
+
   async listForFulfillment(): Promise<ClarityPurchase[]> {
     const records = await prisma.clarityPurchase.findMany({
       orderBy: { createdAt: "desc" },
@@ -167,6 +176,7 @@ export class PrismaClarityPurchaseRepository implements ClarityPurchaseRepositor
       stripeCheckoutSessionId: record.stripeCheckoutSessionId,
       stripePaymentIntentId: record.stripePaymentIntentId,
       stripeCustomerId: record.stripeCustomerId,
+      customerEmail: record.customerEmail,
       amountMinorUnits: record.amountMinorUnits,
       currency: record.currency,
       offerVersion: record.offerVersion,
