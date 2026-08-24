@@ -7,6 +7,7 @@ import {
   isStripeConfigured,
   isStripeWebhookConfigured,
 } from "@/infrastructure/payments/stripeConfig";
+import { buildReceiptEmail } from "@/infrastructure/email/clarityEmailTemplates";
 import { logError, logWarning } from "@/infrastructure/logging/logger";
 
 /**
@@ -56,8 +57,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true, duplicate: true }, { status: 200 });
   }
 
+  const origin = new URL(request.url).origin;
+
   try {
-    await handleEvent(event);
+    await handleEvent(event, origin);
   } catch (error) {
     logError("clarity_webhook.handler_failed", error, { eventId: event.id, eventType: event.type });
     // Return 500 so Stripe retries; recordIfNew already marked this
@@ -73,10 +76,10 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ received: true }, { status: 200 });
 }
 
-async function handleEvent(event: Stripe.Event): Promise<void> {
+async function handleEvent(event: Stripe.Event, origin: string): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed":
-      await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session, origin);
       return;
     case "checkout.session.expired":
       await handleCheckoutExpired(event.data.object as Stripe.Checkout.Session);
@@ -94,7 +97,7 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, origin: string): Promise<void> {
   const purchase = await container.clarityPurchaseRepository.findByStripeCheckoutSessionId(session.id);
   if (!purchase) {
     logWarning("clarity_webhook.purchase_not_found", "checkout.session.completed for unknown session.", {
@@ -114,12 +117,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   const paymentIntentId =
     typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
   const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+  const customerEmail = session.customer_details?.email ?? null;
 
-  await container.clarityPurchaseRepository.updateStatus(purchase.id, "paid", {
+  const applied = await container.clarityPurchaseRepository.updateStatus(purchase.id, "paid", {
     stripePaymentIntentId: paymentIntentId ?? null,
     stripeCustomerId: customerId ?? null,
     paidAt: new Date(),
   });
+
+  if (customerEmail) {
+    await container.clarityPurchaseRepository.updateFields(purchase.id, { customerEmail });
+  }
 
   // "paid" is a transient resting state, not the customer's next
   // action — the very next thing they need to do is intake. Chaining
@@ -130,6 +138,30 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
   // refund. Safe to run on every delivery/retry — updateStatus no-ops
   // once the purchase has already moved past "paid".
   await container.clarityPurchaseRepository.updateStatus(purchase.id, "intake_pending");
+
+  // Best-effort receipt email — only actually attempted the first time
+  // this webhook event applies the "paid" transition (guards against
+  // resending a receipt on every retried/replayed delivery of the same
+  // logical payment, since recordIfNew already dedupes by Stripe event
+  // id, but a legitimately different event for the same purchase, e.g.
+  // a resumed/second checkout session, should not re-send either).
+  // Failure here is logged and swallowed — email is never allowed to
+  // affect payment-processing success.
+  if (applied && customerEmail) {
+    try {
+      const email = buildReceiptEmail({
+        amountMinorUnits: purchase.amountMinorUnits,
+        currency: purchase.currency,
+        intakeUrl: `${origin}/clarity-session/intake?purchase_id=${purchase.id}`,
+      });
+      const result = await container.emailGateway.send({ to: customerEmail, ...email });
+      if (result.kind === "failed") {
+        logError("clarity_webhook.receipt_email_failed", new Error(result.message), { purchaseId: purchase.id });
+      }
+    } catch (error) {
+      logError("clarity_webhook.receipt_email_failed", error, { purchaseId: purchase.id });
+    }
+  }
 }
 
 async function handleCheckoutExpired(session: Stripe.Checkout.Session): Promise<void> {
