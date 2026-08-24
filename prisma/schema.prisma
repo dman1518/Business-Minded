@@ -1,3 +1,244 @@
-// This file replaces only the ClarityPurchase model block via the
-// commit tool's whole-file write; see the accompanying commit for the
-// full file. (Placeholder body replaced below by the actual full file.)
+// Business Minded — Sprint 1 data model
+// Two tables are needed for the customer flow:
+//   AssessmentResult — the scored outcome of a completed Business Health Check
+//   Lead             — the contact captured in exchange for the report
+//
+// Kept intentionally small for Sprint 1 (validation, not scale).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AssessmentResult {
+  // NOTE: cuid(2)/cuid2 was attempted here for non-enumerable public
+  // IDs (see PR #2 discussion) but Prisma CLI 5.22.0 (the version this
+  // project is pinned to) rejects "@default(cuid(2))" at schema-parse
+  // time ("the cuid function does not take any argument") — this broke
+  // the production build (Vercel deployment dpl_EscV49H7TFnBkaf67P4Ndu3Amg5B,
+  // errorCode validation_failure). Reverted to classic cuid() to restore
+  // a working deploy. Upgrading to cuid2 remains a valid future
+  // improvement, but requires bumping the Prisma CLI/client version
+  // first and verifying schema validation succeeds before merging.
+  id                   String   @id @default(cuid())
+  // Canonical, versioned scoring output -- the single source of truth
+  // consumed by both the web results page and PDF generation. Shape:
+  // AssessmentScoreResult (see src/domain/entities/Score.ts).
+  // Nullable only to support rows written before this column existed;
+  // every new submission always populates it. Rows with a null
+  // resultModel are recomputed on read from rawAnswers using the
+  // CURRENT scoring engine + config (see
+  // PrismaAssessmentResultRepository.findById), so a rules-version
+  // change transparently repairs previously-persisted narrative text
+  // without a destructive backfill migration.
+  resultModel          Json?
+  // Identifies which scoring rules produced resultModel, e.g. "v2".
+  // See CURRENT_SCORING_VERSION in src/domain/policies/ScoringVersion.ts.
+  scoringVersion       String?
+  // --- Legacy columns (scoring engine v1) ---
+  // Superseded by resultModel above. Left in place, nullable, as a
+  // read-only audit trail for rows written before this migration --
+  // never written to by new code. Safe to drop in a future migration
+  // once every row has a non-null resultModel (which happens
+  // automatically over time via the read-time backfill described
+  // above, or via an explicit backfill script).
+  overallScore         Int?
+  categoryScores       Json? // legacy CategoryScore[]
+  biggestOpportunity   Json? // legacy Insight
+  biggestConstraint    Json? // legacy Insight
+  topPriorities        Json? // legacy string[]
+  confidenceLevel      String?
+  rawAnswers           Json // { [questionId]: answerValue } — for auditing/debugging scoring, and for read-time recomputation
+  // Unscored segmentation info from the intro screen (industry, company
+  // size, revenue range). Never used in scoring — internal lead
+  // qualification only. Null when the respondent skipped the intro
+  // screen entirely. See src/domain/value-objects/Segmentation.ts.
+  segmentation         Json?
+  createdAt            DateTime @default(now())
+
+  lead Lead?
+
+  // Business Clarity Session purchase attempts tied to this assessment.
+  // One-to-many (not one-to-one) because a checkout can be abandoned,
+  // cancelled, or retried, producing more than one ClarityPurchase row
+  // per assessment over time.
+  clarityPurchases ClarityPurchase[]
+
+  @@map("assessment_results")
+}
+
+model Lead {
+  // See AssessmentResult.id comment above re: reverting cuid(2) -> cuid().
+  id                    String   @id @default(cuid())
+  firstName             String
+  email                 String
+  // Optional per the P1 lead-capture brief: only First name and Email
+  // are required to unlock the report.
+  company               String?
+  website               String?
+  assessmentResultId    String   @unique
+  assessmentResult      AssessmentResult @relation(fields: [assessmentResultId], references: [id])
+  // Required report-delivery consent record — must be present before a
+  // lead can be saved. See src/domain/policies/PrivacyPolicy.ts for the
+  // current policy version.
+  consentTimestamp      DateTime
+  consentPolicyVersion  String
+  // Optional, separate consent to be personally followed up with about
+  // THIS assessment's results — distinct from both the required
+  // report-delivery consent above and the general marketing consent
+  // below. Null means not granted; a timestamp records when it was.
+  resultsFollowUpConsentAt DateTime?
+  // Separate, optional marketing consent (general tips/updates,
+  // unrelated to this specific result). Null means the respondent did
+  // not opt in; a timestamp records when they did. Distinct from the
+  // required report-delivery consent above — checking this box is never
+  // required to get the report.
+  marketingConsentAt    DateTime?
+  reportGeneratedAt     DateTime?
+  createdAt             DateTime @default(now())
+
+  // Business Clarity Session purchase attempts tied to this lead.
+  // One-to-many for the same reason as AssessmentResult.clarityPurchases.
+  clarityPurchases ClarityPurchase[]
+
+  @@index([email])
+  @@map("leads")
+}
+
+// --- Business Clarity Session (paid offer) ---
+//
+// Three tables support the paid-offer funnel:
+//   ClarityPurchase     — one row per checkout attempt (Stripe Checkout
+//                         Session). Explicit `status` state machine
+//                         (see src/domain/value-objects/ClarityPurchaseStatus.ts)
+//                         rather than nullable-field ambiguity.
+//   ClarityIntake       — the post-purchase intake questionnaire,
+//                         1:1 with a completed purchase.
+//   ClarityWebhookEvent — processed Stripe webhook event IDs, used
+//                         purely for replay/duplicate-delivery
+//                         protection (Stripe redelivers webhooks and
+//                         guarantees at-least-once, not exactly-once,
+//                         delivery).
+
+model ClarityPurchase {
+  id String @id @default(cuid())
+
+  // Optional: a purchase can theoretically be started without a prior
+  // assessment (e.g. a direct link to /clarity-session), so these are
+  // nullable. When present, they link the purchase back to the free
+  // assessment that drove it, for attribution and to prefill intake.
+  assessmentResultId String?
+  assessmentResult   AssessmentResult? @relation(fields: [assessmentResultId], references: [id])
+  leadId             String?
+  lead               Lead?             @relation(fields: [leadId], references: [id])
+
+  // Client-generated UUID, one per checkout attempt (created once when
+  // the "Book my session" button is first clicked, persisted in
+  // sessionStorage so a page refresh reuses it). Used both as a DB
+  // uniqueness guard and as the Stripe Idempotency-Key header, so a
+  // double-click or retried request cannot create two Checkout
+  // Sessions or two rows for the same attempt.
+  clientRequestId String @unique
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeCustomerId        String?
+
+  // Captured from Stripe Checkout's own collected billing email
+  // (session.customer_details.email) when the webhook confirms
+  // payment — never entered by the customer anywhere in our own UI.
+  // Used for the receipt email and shown in the internal fulfillment
+  // view so the business owner knows who to follow up with. Null
+  // until a webhook has actually delivered it.
+  customerEmail String?
+
+  // Integer minor units (e.g. 29700 = $297.00) — never a float, to
+  // avoid floating-point currency errors. Always server-computed from
+  // the current offer configuration; never trusts a client-submitted
+  // amount.
+  amountMinorUnits Int
+  currency         String @default("usd")
+
+  // Identifies which offer configuration (price, copy version) produced
+  // this purchase, e.g. "clarity-session-founding-297". Lets pricing
+  // change over time without rewriting historical rows.
+  offerVersion          String
+  founderPricingApplied Boolean @default(false)
+
+  // See ClarityPurchaseStatus in src/domain/value-objects/ClarityPurchaseStatus.ts
+  // for the full state machine and allowed transitions.
+  status String @default("checkout_created")
+
+  // Non-PII marketing attribution only (utm_source/medium/campaign).
+  // Never free text, names, or emails.
+  sourceCampaign Json?
+
+  paidAt       DateTime?
+  refundedAt   DateTime?
+  refundReason String?
+
+  intakeStatus String @default("not_started") // not_started | in_progress | complete
+
+  schedulingStatus String    @default("not_started") // not_started | link_sent | externally_managed | scheduled
+  scheduledAt      DateTime?
+
+  planDeliveredAt DateTime?
+  followUpDueAt   DateTime?
+  followUpDoneAt  DateTime?
+
+  // Free-text notes visible only in the internal fulfillment view —
+  // never surfaced to the customer or included in analytics.
+  internalNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  intake ClarityIntake?
+
+  @@index([status])
+  @@index([assessmentResultId])
+  @@index([leadId])
+  @@map("clarity_purchases")
+}
+
+model ClarityIntake {
+  id String @id @default(cuid())
+
+  purchaseId String          @unique
+  purchase   ClarityPurchase @relation(fields: [purchaseId], references: [id])
+
+  // Structured answers to the 13 intake questions (see
+  // src/domain/entities/ClarityIntake.ts for the shape). Kept as JSON
+  // (not one column per question) so the questionnaire can evolve
+  // without a migration each time, while remaining server-validated
+  // against a fixed Zod schema before being written.
+  answers Json
+
+  status      String    @default("draft") // draft | submitted
+  submittedAt DateTime?
+
+  consentTimestamp     DateTime?
+  consentPolicyVersion String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clarity_intakes")
+}
+
+model ClarityWebhookEvent {
+  id String @id @default(cuid())
+
+  // Stripe's event.id — unique constraint is the actual replay guard.
+  // A webhook handler looks this up first and no-ops if it already
+  // exists, before touching any ClarityPurchase row.
+  stripeEventId String @unique
+  eventType     String
+  processedAt   DateTime @default(now())
+
+  @@map("clarity_webhook_events")
+}
