@@ -1,5 +1,9 @@
 import { ClarityPurchase } from "@/domain/entities/ClarityPurchase";
-import { ClarityPurchaseStatus } from "@/domain/value-objects/ClarityPurchaseStatus";
+import {
+  ClarityPurchaseStatus,
+  ClarityIntakeStatus,
+  ClaritySchedulingStatus,
+} from "@/domain/value-objects/ClarityPurchaseStatus";
 
 export interface CreateClarityPurchaseInput {
   clientRequestId: string;
@@ -10,6 +14,13 @@ export interface CreateClarityPurchaseInput {
   offerVersion: string;
   founderPricingApplied: boolean;
   sourceCampaign: { source?: string; medium?: string; campaign?: string } | null;
+}
+
+export interface ClarityPurchaseFieldUpdates {
+  intakeStatus?: ClarityIntakeStatus;
+  schedulingStatus?: ClaritySchedulingStatus;
+  internalNotes?: string | null;
+  customerEmail?: string | null;
 }
 
 /**
@@ -24,6 +35,15 @@ export interface CreateClarityPurchaseInput {
  * `updateStatus` enforces the allowed state-machine transitions from
  * ClarityPurchaseStatus so a replayed or out-of-order webhook can
  * never move a purchase backwards.
+ *
+ * `updateFields` is deliberately separate from `updateStatus`: it
+ * writes auxiliary fields (intakeStatus, schedulingStatus,
+ * internalNotes, customerEmail) that are NOT governed by the main
+ * status state machine and can legitimately change independently of
+ * (or slightly out of step with) a `status` transition — e.g. the
+ * scheduling-link endpoint marks schedulingStatus "link_sent" the
+ * moment it hands out a link, which is not itself a `status`
+ * transition.
  */
 export interface ClarityPurchaseRepository {
   createIfNotExists(input: CreateClarityPurchaseInput): Promise<ClarityPurchase>;
@@ -32,13 +52,6 @@ export interface ClarityPurchaseRepository {
   findByStripePaymentIntentId(stripePaymentIntentId: string): Promise<ClarityPurchase | null>;
   findById(id: string): Promise<ClarityPurchase | null>;
   attachStripeCheckoutSessionId(id: string, stripeCheckoutSessionId: string): Promise<void>;
-  /**
-   * Applies a status transition. Implementations MUST no-op (not
-   * throw) when `to` is already the current status, and MUST reject
-   * (return false, not throw) an out-of-order/disallowed transition so
-   * webhook handlers can log-and-skip rather than 500. Returns true if
-   * the transition was applied.
-   */
   updateStatus(
     id: string,
     to: ClarityPurchaseStatus,
@@ -57,6 +70,7 @@ export interface ClarityPurchaseRepository {
       >
     >
   ): Promise<boolean>;
+  updateFields(id: string, fields: ClarityPurchaseFieldUpdates): Promise<void>;
   listForFulfillment(): Promise<ClarityPurchase[]>;
   /** Real, accurate count of purchases that both used founding pricing AND actually paid — the basis for computeOfferPricing(). */
   countPaidFoundingPurchases(): Promise<number>;
