@@ -21,6 +21,7 @@ import { CaptureLead } from "@/application/use-cases/CaptureLead";
 import { GenerateReport } from "@/application/use-cases/GenerateReport";
 import { CreateClarityCheckoutSession } from "@/application/use-cases/CreateClarityCheckoutSession";
 import { SubmitClarityIntake } from "@/application/use-cases/SubmitClarityIntake";
+import { UpdateClarityFulfillment } from "@/application/use-cases/UpdateClarityFulfillment";
 
 /**
  * Composition root.
@@ -73,6 +74,7 @@ export const container = {
       leadRepository
     ),
   submitClarityIntake: () => new SubmitClarityIntake(clarityPurchaseRepository, clarityIntakeRepository),
+  updateClarityFulfillment: () => new UpdateClarityFulfillment(clarityPurchaseRepository),
   clarityPurchaseRepository,
   clarityWebhookEventRepository,
   clarityIntakeRepository,
