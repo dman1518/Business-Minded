@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import {
   ClarityIntakeRepository,
   UpsertClarityIntakeInput,
@@ -24,18 +25,25 @@ export class PrismaClarityIntakeRepository implements ClarityIntakeRepository {
   }
 
   async upsertSubmitted(input: UpsertClarityIntakeInput): Promise<ClarityIntake> {
+    // Prisma's generated type for a Json column (InputJsonValue) requires
+    // an index signature that our specific, Zod-validated ClarityIntakeAnswers
+    // interface doesn't structurally have. The cast is safe: input.answers
+    // has already passed SubmitClarityIntakeSchema validation, so it is
+    // guaranteed to be a plain JSON-serializable object at this point.
+    const answersJson = input.answers as unknown as Prisma.InputJsonValue;
+
     const record = await prisma.clarityIntake.upsert({
       where: { purchaseId: input.purchaseId },
       create: {
         purchaseId: input.purchaseId,
-        answers: input.answers,
+        answers: answersJson,
         status: "submitted",
         submittedAt: new Date(),
         consentTimestamp: input.consentTimestamp,
         consentPolicyVersion: input.consentPolicyVersion,
       },
       update: {
-        answers: input.answers,
+        answers: answersJson,
         status: "submitted",
         submittedAt: new Date(),
         consentTimestamp: input.consentTimestamp,
