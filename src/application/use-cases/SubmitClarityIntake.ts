@@ -34,6 +34,17 @@ const INTAKE_ELIGIBLE_STATUSES = [
  * meaning the Stripe webhook has already verified payment. Knowing or
  * guessing a purchase id alone is never enough to submit intake for a
  * purchase nobody paid for.
+ *
+ * On first submission this also advances two things that the
+ * ClarityPurchase.intakeStatus / .status fields both need to reflect:
+ * intakeStatus flips to "complete" (this is the field the success and
+ * intake pages actually read to decide whether to show "Start Intake"
+ * again — it must be set here, not left at its default), and the main
+ * status state machine advances intake_pending -> intake_complete ->
+ * scheduling_pending in one step, mirroring how the webhook chains
+ * paid -> intake_pending: the customer's next action (scheduling) is
+ * a deterministic consequence of finishing intake, not a separate
+ * business decision.
  */
 export class SubmitClarityIntake {
   constructor(
@@ -56,12 +67,15 @@ export class SubmitClarityIntake {
       consentPolicyVersion: CURRENT_PRIVACY_POLICY_VERSION,
     });
 
+    await this.purchaseRepository.updateFields(purchase.id, { intakeStatus: "complete" });
+
     // Advance the purchase state machine on first submission. A
-    // resubmission (status already intake_complete or later) is a
-    // safe no-op: updateStatus treats from===to as idempotent and
-    // will not attempt a disallowed backward transition.
+    // resubmission (status already past intake_pending) is a safe
+    // no-op: updateStatus treats from===to as idempotent and will not
+    // attempt a disallowed backward transition.
     if (purchase.status === "intake_pending") {
       await this.purchaseRepository.updateStatus(purchase.id, "intake_complete");
+      await this.purchaseRepository.updateStatus(purchase.id, "scheduling_pending");
     }
 
     return { kind: "submitted" };
