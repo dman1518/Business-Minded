@@ -6,6 +6,7 @@ import { PrismaClarityPurchaseRepository } from "@/infrastructure/repositories/P
 import { PrismaClarityWebhookEventRepository } from "@/infrastructure/repositories/PrismaClarityWebhookEventRepository";
 import { PrismaClarityIntakeRepository } from "@/infrastructure/repositories/PrismaClarityIntakeRepository";
 import { StripeCheckoutGateway } from "@/infrastructure/payments/StripeCheckoutGateway";
+import { ResendEmailGateway } from "@/infrastructure/email/ResendEmailGateway";
 import { ConfigurableScoringEngine } from "@/infrastructure/scoring-engine/ConfigurableScoringEngine";
 import { PdfReportEngine } from "@/infrastructure/report-engine/PdfReportEngine";
 import { validateStartupConfig } from "@/infrastructure/config/validateStartupConfig";
@@ -51,6 +52,7 @@ const clarityPurchaseRepository = new PrismaClarityPurchaseRepository();
 const clarityWebhookEventRepository = new PrismaClarityWebhookEventRepository();
 const clarityIntakeRepository = new PrismaClarityIntakeRepository();
 const clarityCheckoutGateway = new StripeCheckoutGateway();
+const emailGateway = new ResendEmailGateway();
 
 export const container = {
   getQuestionSet: () => new GetQuestionSet(questionRepository),
@@ -75,6 +77,7 @@ export const container = {
   clarityWebhookEventRepository,
   clarityIntakeRepository,
   clarityCheckoutGateway,
+  emailGateway,
   assessmentResultRepository,
   scoringConfigRepository,
 };
