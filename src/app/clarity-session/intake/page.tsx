@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SchedulingCta } from "@/components/clarity-session/SchedulingCta";
 import { trackEvent } from "@/lib/analytics";
 
 interface IntakeAnswers {
@@ -170,12 +171,22 @@ function IntakeContent() {
     );
   }
 
-  if (loadState === "already_submitted" && !submitted) {
-    return <CenteredMessage>We already have your intake on file. We&apos;ll be in touch about scheduling.</CenteredMessage>;
-  }
-
-  if (submitted) {
-    return <CenteredMessage>Thanks — your intake is in. We&apos;ll follow up shortly about scheduling.</CenteredMessage>;
+  if ((loadState === "already_submitted" || submitted) && purchaseId) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 px-4 text-center">
+        <Card className="w-full">
+          <CardContent className="flex flex-col gap-4 pt-6">
+            <p className="text-sm text-muted-foreground">
+              {submitted
+                ? "Thanks — your intake is in."
+                : "We already have your intake on file."}{" "}
+              Next: pick a time for your session.
+            </p>
+            <SchedulingCta purchaseId={purchaseId} />
+          </CardContent>
+        </Card>
+      </main>
+    );
   }
 
   return (
