@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/formatCurrency";
-
-export const ADMIN_SECRET_STORAGE_KEY = "clarity_admin_secret";
+import { ADMIN_SECRET_STORAGE_KEY } from "@/lib/clarityAdminStorage";
 
 interface FulfillmentRow {
   id: string;
